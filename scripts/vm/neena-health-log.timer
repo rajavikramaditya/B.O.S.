@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Neena health logger every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=neena-health-log.service
+
+[Install]
+WantedBy=timers.target

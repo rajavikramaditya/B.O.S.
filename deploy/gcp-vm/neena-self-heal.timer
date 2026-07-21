@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll Neena self-heal request every 30s
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=30s
+Unit=neena-self-heal.service
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

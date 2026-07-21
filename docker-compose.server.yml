@@ -1,0 +1,142 @@
+# Neena Gupta Command Center Server-Deployment Compose Definition.
+# Docker deployment compose. Production/Docker readiness cleanup.
+# Exposes only neena-backend publicly; database/redis are internal-only.
+
+version: '3.8'
+
+services:
+  neena-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neena-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - RUNTIME_MODE=${RUNTIME_MODE:-gcp-vm}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL}
+      - APP_API_BASE_URL=${APP_API_BASE_URL}
+      - STREAM_PUBLIC_URL=${STREAM_PUBLIC_URL}
+      - AZURACAST_BASE_URL=${AZURACAST_BASE_URL}
+      - AZURACAST_STATION_ID=${AZURACAST_STATION_ID}
+      - AZURACAST_PUBLIC_PAGE=${AZURACAST_PUBLIC_PAGE}
+      - AZURACAST_STREAM_URL=${AZURACAST_STREAM_URL}
+      - AZURACAST_API_KEY=${AZURACAST_API_KEY}
+      - AZURACAST_PLAYLIST_ID=${AZURACAST_PLAYLIST_ID:-}
+      - AZURACAST_TARGET_FOLDER=${AZURACAST_TARGET_FOLDER:-}
+      - AZURACAST_WRITES_ENABLED=${AZURACAST_WRITES_ENABLED:-false}
+      - WHATSAPP_GATEWAY_URL=${WHATSAPP_GATEWAY_URL:-http://neena-whatsapp-gateway:3001/api/status}
+      - OWNER_WHATSAPP_NUMBER=${OWNER_WHATSAPP_NUMBER}
+      - OWNER_PHONE_NUMBER=${OWNER_PHONE_NUMBER}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ADMIN_AUTH_ENABLED=${ADMIN_AUTH_ENABLED:-true}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
+      - APP_CONFIG_ADMIN_TOKEN=${APP_CONFIG_ADMIN_TOKEN}
+      - ADMIN_UNLOCK_PHRASE=${ADMIN_UNLOCK_PHRASE}
+      - ADMIN_UNLOCK_MIN_SCORE=${ADMIN_UNLOCK_MIN_SCORE:-0.82}
+      - ADMIN_UNLOCK_SESSION_DAYS=${ADMIN_UNLOCK_SESSION_DAYS:-7}
+      - ADMIN_UNLOCK_REQUIRED_WORDS=${ADMIN_UNLOCK_REQUIRED_WORDS}
+      - COMMAND_CENTER_LOCAL_ONLY=${COMMAND_CENTER_LOCAL_ONLY:-true}
+      - ALLOW_INSECURE_SSL_DEV_ONLY=${ALLOW_INSECURE_SSL_DEV_ONLY:-false}
+      - ALLOW_SIMULATED_TTS_DEV_ONLY=${ALLOW_SIMULATED_TTS_DEV_ONLY:-false}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - NEENA_PG_HOST=neena-postgres
+      - NEENA_PG_PORT=5432
+      - NEENA_REDIS_HOST=neena-redis
+      - NEENA_REDIS_PORT=6379
+      - NEENA_SELF_HEAL=${NEENA_SELF_HEAL:-0}
+      - NEENA_SELF_HEAL_ALLOW_REBOOT=${NEENA_SELF_HEAL_ALLOW_REBOOT:-0}
+      - NEENA_SELF_HEAL_DRY_RUN=${NEENA_SELF_HEAL_DRY_RUN:-0}
+      - NEENA_SELF_HEAL_DIR=/var/lib/neena
+    volumes:
+      - ./backend/radio_station.db:/app/backend/radio_station.db
+      - neena_voice_assets:/app/backend/playout/voice_assets
+      - neena_logs:/app/backend/logs
+      - /var/lib/neena:/var/lib/neena
+    depends_on:
+      neena-postgres:
+        condition: service_healthy
+      neena-redis:
+        condition: service_healthy
+    networks:
+      - neena-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "8", "http://127.0.0.1:8000/healthz"]
+      interval: 45s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  neena-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: neena-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: neena_memory_shadow
+      POSTGRES_USER: neena_shadow
+      POSTGRES_PASSWORD: neena_shadow_dev
+    # Do not expose ports to host to prevent conflict and ensure security.
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - neena_postgres_data:/var/lib/postgresql/data
+    networks:
+      - neena-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neena_shadow -d neena_memory_shadow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  neena-redis:
+    image: redis:7-alpine
+    container_name: neena-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    # Do not expose ports to host.
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - neena_redis_data:/data
+    networks:
+      - neena-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  neena_sqlite_data:
+  neena_voice_assets:
+  neena_logs:
+  neena_postgres_data:
+  neena_redis_data:
+
+networks:
+  neena-network:
+    name: neena-network
+    driver: bridge

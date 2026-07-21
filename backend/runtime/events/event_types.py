@@ -1,0 +1,20 @@
+"""B.O.S. Runtime Event Types v0.1
+
+Enumeration of supported platform events in the Event-Driven Runtime.
+"""
+
+from enum import Enum
+
+
+class EventType(str, Enum):
+    INCOMING_MESSAGE = "INCOMING_MESSAGE"
+    VOICE_INPUT = "VOICE_INPUT"
+    WEBHOOK = "WEBHOOK"
+    TIMER = "TIMER"
+    REMINDER = "REMINDER"
+    WORKFLOW_FINISHED = "WORKFLOW_FINISHED"
+    CAPABILITY_FAILED = "CAPABILITY_FAILED"
+    APPROVAL_GRANTED = "APPROVAL_GRANTED"
+    APPROVAL_REJECTED = "APPROVAL_REJECTED"
+    SYSTEM = "SYSTEM"
+    MODULE_LIFECYCLE = "MODULE_LIFECYCLE"

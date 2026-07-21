@@ -1,0 +1,42 @@
+{
+  "name": "self_knowledge",
+  "description": "Ask Neena about herself, her body, goal, and duties — should use self-knowledge, never go silent.",
+  "turns": [
+    {
+      "id": "who",
+      "message": "tum kaun ho neena, apne bare me batao",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi", "Server se connect nahi"]
+      }
+    },
+    {
+      "id": "goal",
+      "message": "tumhe kyun banaya gaya hai, tumhara goal kya hai",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi"]
+      }
+    },
+    {
+      "id": "body",
+      "message": "tumhare shareer me kya kya hai — redis postgres docker models",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi"]
+      }
+    },
+    {
+      "id": "duties",
+      "message": "tumhara kaam kya kya hai station manager ke taur pe",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi"]
+      }
+    }
+  ]
+}

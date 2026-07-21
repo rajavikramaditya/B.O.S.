@@ -1,0 +1,7 @@
+[Unit]
+Description=Neena Backend Watchdog Service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/neena-backend-watchdog.sh

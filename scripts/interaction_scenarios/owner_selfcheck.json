@@ -1,0 +1,68 @@
+{
+  "name": "owner_selfcheck",
+  "description": "Owner-like self-check: greeting, status, time, body feel, memory list, continuity. Safe only.",
+  "turns": [
+    {
+      "id": "greet",
+      "message": "hello neena kaisi ho",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi", "main yahin hoon", "Temporary runtime context"]
+      }
+    },
+    {
+      "id": "status_short",
+      "message": "station status short me batao",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi"]
+      }
+    },
+    {
+      "id": "time",
+      "message": "time kitna hua hai",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 20000,
+        "forbid_substrings": ["CPU", "RAM usage", "backend se response nahi"]
+      }
+    },
+    {
+      "id": "body_feel",
+      "message": "abhi tumhare shareer me redis postgres models theek hain ya kuch hurt hai?",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi", "main yahin hoon"]
+      }
+    },
+    {
+      "id": "who",
+      "message": "tum kaun ho short me",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["backend se response nahi"]
+      }
+    },
+    {
+      "id": "memory_list",
+      "message": "yaadein dikhao",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000
+      }
+    },
+    {
+      "id": "continuity",
+      "message": "jo abhi bataya usme se pehli wali baat kya thi",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_actions": ["send_azuracast", "generate_audio"]
+      }
+    }
+  ]
+}

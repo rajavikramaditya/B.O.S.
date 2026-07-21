@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Neena Backend Watchdog every minute
+
+[Timer]
+OnBootSec=2m
+OnUnitActiveSec=2m
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Orai Radio Command Center FastAPI Service
+After=network.target
+
+[Service]
+User=mahilkingdomorai
+WorkingDirectory=/home/mahilkingdomorai/radio-ai-manager
+ExecStart=/home/mahilkingdomorai/radio-ai-manager/venv/bin/python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080
+Restart=always
+RestartSec=5
+Environment=PORT=8080
+Environment=PAGER=cat
+
+
+[Install]
+WantedBy=multi-user.target

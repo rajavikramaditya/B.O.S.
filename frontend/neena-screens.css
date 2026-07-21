@@ -1,0 +1,1039 @@
+/* ============================================================
+   Neena Screens — Drawer / Lab / Monitor / Settings HUD polish
+   Home (neena-hybrid.css) remains the locked visual baseline.
+   ============================================================ */
+
+/* Shared HUD modules (Lab / Monitor / Settings) */
+.nc-hud-module {
+    position: relative;
+    background: linear-gradient(160deg, rgba(8, 18, 32, 0.72), rgba(5, 10, 18, 0.55));
+    border: 1px solid rgba(59, 158, 255, 0.16);
+    border-radius: 2px;
+    padding: 14px 16px;
+    box-shadow:
+        0 0 0 1px rgba(59, 158, 255, 0.04) inset,
+        0 12px 36px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(10px) saturate(1.1);
+    color: #e8f1f8;
+}
+.nc-hud-module::before,
+.nc-hud-module::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+}
+.nc-hud-module::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1.5px solid rgba(59, 158, 255, 0.7);
+    border-left: 1.5px solid rgba(59, 158, 255, 0.7);
+}
+.nc-hud-module::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1.5px solid rgba(59, 158, 255, 0.4);
+    border-right: 1.5px solid rgba(59, 158, 255, 0.4);
+}
+.nc-module-head {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(59, 158, 255, 0.1);
+}
+.nc-module-head h3 {
+    margin: 0;
+    font-size: 0.92rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #e8f1f8;
+}
+.nc-module-head h3 i { color: #6eb6ff; margin-right: 6px; }
+.nc-truth-note {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: rgba(150, 185, 210, 0.72);
+}
+
+/* ---------- PHASE A: Command Neena Console drawer ---------- */
+body.cc-admin .cc-command-drawer-panel.nc-console-panel,
+body.cc-admin .nc-console-panel {
+    width: min(560px, 100%);
+    background:
+        linear-gradient(180deg, rgba(8, 18, 32, 0.98), rgba(4, 8, 16, 0.99));
+    border-left: 1px solid rgba(59, 158, 255, 0.32);
+}
+.nc-console-head {
+    background: linear-gradient(90deg, rgba(59, 158, 255, 0.08), transparent 70%);
+}
+.nc-console-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.nc-console-eyebrow {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(91, 231, 255, 0.75);
+}
+body.cc-admin .nc-console-panel .cc-command-drawer-head h2 {
+    font-size: 1rem;
+}
+body.cc-admin .nc-drawer-thread {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    padding: 10px 12px 12px !important;
+}
+body.cc-admin .nc-drawer-thread .chat-logs-area {
+    flex: 1;
+    min-height: 180px;
+    max-height: none;
+    padding: 8px 4px;
+    overflow-y: auto;
+}
+.nc-console-empty {
+    margin: 28px 12px;
+    padding: 18px 16px;
+    text-align: center;
+    border: 1px dashed rgba(59, 158, 255, 0.22);
+    background: rgba(59, 158, 255, 0.03);
+    color: rgba(170, 200, 220, 0.78) !important;
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+#console-chat-messages:has(.chat-row) .nc-console-empty {
+    display: none;
+}
+.nc-console-compose {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(59, 158, 255, 0.14);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+body.cc-admin .nc-console-compose .chat-model-selector-bar {
+    margin: 0;
+    padding: 0;
+    border: none;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px;
+}
+body.cc-admin .nc-console-input-strip {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    padding: 0;
+    border: 1px solid rgba(59, 158, 255, 0.28);
+    background: linear-gradient(90deg, rgba(6, 14, 26, 0.85), rgba(8, 20, 36, 0.7));
+    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+}
+body.cc-admin .nc-console-input-strip input {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 12px 14px !important;
+    border-radius: 0 !important;
+}
+body.cc-admin .nc-console-input-strip .btn-primary {
+    border-radius: 0 !important;
+    margin: 4px;
+    min-width: 44px;
+}
+body.cc-admin .nc-drawer-voice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 14px 12px !important;
+    gap: 8px;
+}
+body.cc-admin .nc-drawer-voice .cockpit-mic-btn {
+    width: min(100%, 220px);
+    border: 1px solid rgba(59, 158, 255, 0.35);
+    background: rgba(59, 158, 255, 0.08);
+    color: #e8f1f8;
+    border-radius: 2px;
+    padding: 10px 14px;
+}
+body.cc-admin .nc-drawer-voice .neena-orb-wrap {
+    filter: drop-shadow(0 0 18px rgba(59, 158, 255, 0.35));
+}
+body.cc-admin .nc-drawer-thread .chat-bubble {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+body.cc-admin .agent-pending-chip:not(.hidden) {
+    background: rgba(245, 165, 36, 0.12);
+    border: 1px solid rgba(245, 165, 36, 0.45);
+    color: #f5a524;
+}
+
+/* ---------- PHASE B: Lab pipeline ---------- */
+.nc-lab-stage {
+    padding: 12px 14px 20px;
+    max-width: 1100px;
+}
+.nc-pipeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 16px;
+    padding: 12px 10px;
+    background: rgba(59, 158, 255, 0.04);
+    border: 1px solid rgba(59, 158, 255, 0.14);
+}
+.nc-pipe-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid rgba(59, 158, 255, 0.22);
+    background: rgba(6, 12, 22, 0.55);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(200, 225, 240, 0.92);
+}
+.nc-pipe-num {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #041018;
+    background: #6eb6ff;
+}
+.nc-pipe-attention {
+    border-color: rgba(245, 165, 36, 0.55);
+    background: rgba(36, 24, 10, 0.35);
+}
+.nc-pipe-attention .nc-pipe-num {
+    background: #f5a524;
+    color: #1a1206;
+}
+.nc-pipe-arrow {
+    width: 18px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(59, 158, 255, 0.15), rgba(59, 158, 255, 0.55));
+    position: relative;
+}
+.nc-pipe-arrow::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: -3px;
+    border: 4px solid transparent;
+    border-left-color: rgba(59, 158, 255, 0.55);
+}
+.nc-lab-task,
+.nc-lab-active-pipeline {
+    margin-bottom: 16px;
+}
+.nc-lab-task h4,
+.nc-lab-active-pipeline h4,
+.neena-lab-work-section h4 {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(150, 190, 215, 0.85);
+}
+.nc-lab-task h4 i,
+.nc-lab-active-pipeline h4 i { color: #6eb6ff; }
+
+body.cc-admin .pipeline-capsule-card {
+    background: rgba(6, 14, 26, 0.55);
+    border: 1px solid rgba(59, 158, 255, 0.18);
+    border-radius: 2px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: none;
+}
+body.cc-admin .pipeline-timeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0;
+}
+body.cc-admin .pipeline-step {
+    padding: 4px 8px;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid rgba(59, 158, 255, 0.18);
+    color: rgba(160, 190, 210, 0.7);
+    background: transparent;
+}
+body.cc-admin .pipeline-step.step-done {
+    border-color: rgba(59, 158, 255, 0.55);
+    color: #6eb6ff;
+    background: rgba(59, 158, 255, 0.08);
+}
+body.cc-admin .pipeline-step.step-active {
+    border-color: rgba(245, 165, 36, 0.65);
+    color: #f5a524;
+    background: rgba(245, 165, 36, 0.1);
+}
+body.cc-admin .pipeline-step.step-pending {
+    opacity: 0.55;
+}
+
+body.cc-admin .lab-day-folder {
+    border: 1px solid rgba(59, 158, 255, 0.14);
+    background: rgba(6, 12, 22, 0.4);
+    margin-bottom: 10px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+body.cc-admin .lab-day-folder-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(59, 158, 255, 0.04);
+    border: none;
+    color: #e8f1f8;
+    cursor: pointer;
+    text-align: left;
+}
+body.cc-admin .lab-day-folder-head:hover {
+    background: rgba(59, 158, 255, 0.08);
+}
+body.cc-admin .lab-day-label {
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+body.cc-admin .lab-day-count {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: rgba(150, 190, 215, 0.75);
+    font-family: var(--font-mono);
+}
+body.cc-admin .lab-item-row,
+body.cc-admin .lab-day-item {
+    margin: 8px;
+    padding: 12px;
+    border: 1px solid rgba(59, 158, 255, 0.14);
+    background: rgba(8, 16, 28, 0.55);
+    border-radius: 2px;
+}
+body.cc-admin .lab-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+body.cc-admin .lab-item-actions .btn-primary {
+    box-shadow: 0 0 12px rgba(59, 158, 255, 0.25);
+}
+body.cc-admin .badge-warning {
+    background: rgba(245, 165, 36, 0.12);
+    color: #f5a524;
+    border-color: rgba(245, 165, 36, 0.4);
+}
+body.cc-admin .neena-lab-work-card.nc-hud-module,
+body.cc-admin .neena-lab-work-card {
+    background: linear-gradient(160deg, rgba(8, 18, 32, 0.72), rgba(5, 10, 18, 0.55));
+    border: 1px solid rgba(59, 158, 255, 0.16);
+    box-shadow: none;
+}
+
+/* ---------- PHASE C: Monitor telemetry ---------- */
+.nc-monitor-stage {
+    gap: 14px;
+    padding: 12px 14px 20px;
+}
+body.cc-admin .nc-monitor-stage .nc-hud-module {
+    margin: 0;
+}
+.nc-gauge-row {
+    gap: 18px;
+}
+body.cc-admin .circular-progress {
+    border: 1px solid rgba(59, 158, 255, 0.2);
+    box-shadow: 0 0 24px rgba(59, 158, 255, 0.08);
+}
+body.cc-admin .nc-telemetry-rows .telemetry-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(59, 158, 255, 0.08);
+    font-size: 0.82rem;
+}
+body.cc-admin .nc-telemetry-rows .telemetry-row:last-child { border-bottom: none; }
+body.cc-admin .nc-telemetry-rows .telemetry-row span:first-child {
+    color: rgba(150, 185, 210, 0.78);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.68rem;
+}
+body.cc-admin .nc-stream-hud {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(59, 158, 255, 0.16);
+    background: rgba(59, 158, 255, 0.03);
+}
+body.cc-admin .nc-stream-core,
+body.cc-admin .vinyl-record-widget.nc-stream-core {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(59, 158, 255, 0.45);
+    background:
+        radial-gradient(circle at 50% 50%, rgba(59, 158, 255, 0.25), transparent 55%),
+        rgba(6, 12, 22, 0.9);
+    color: #6eb6ff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 28px rgba(59, 158, 255, 0.25);
+    animation: none;
+}
+body.cc-admin .nc-stream-core i { font-size: 1.35rem; }
+body.cc-admin .broadcast-ping {
+    position: relative;
+    width: 18px;
+    height: 18px;
+}
+body.cc-admin .broadcast-ping .ping-dot {
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: #6eb6ff;
+    box-shadow: 0 0 8px #6eb6ff;
+}
+body.cc-admin .broadcast-ping .ping-wave {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 158, 255, 0.55);
+    animation: nc-ring-pulse 1.8s ease-out infinite;
+}
+body.cc-admin .nc-event-feed h4 {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(150, 190, 215, 0.85);
+}
+body.cc-admin .nc-event-feed .logs-scroller {
+    max-height: 220px;
+    border: 1px solid rgba(59, 158, 255, 0.12);
+    background: rgba(4, 8, 14, 0.45);
+    padding: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+}
+body.cc-admin .nc-event-feed .log-item-row {
+    border-bottom: 1px solid rgba(59, 158, 255, 0.06);
+    padding: 6px 4px;
+    color: rgba(200, 220, 235, 0.88);
+}
+body.cc-admin .nc-ops-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+body.cc-admin .nc-ops-module {
+    padding: 10px 12px;
+    border: 1px solid rgba(59, 158, 255, 0.12);
+    background: rgba(6, 12, 22, 0.4);
+}
+body.cc-admin .nc-ops-module h4 {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(150, 190, 215, 0.85);
+}
+body.cc-admin .nc-ops-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+body.cc-admin .cockpit-pill {
+    background: rgba(8, 14, 24, 0.7);
+    border: 1px solid rgba(59, 158, 255, 0.28);
+    color: #e8f1f8;
+    border-radius: 2px;
+}
+body.cc-admin .cockpit-pill:hover {
+    border-color: #6eb6ff;
+    color: #6eb6ff;
+}
+body.cc-admin .readiness-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(59, 158, 255, 0.06);
+    font-size: 0.8rem;
+}
+body.cc-admin .readiness-row strong {
+    color: #6eb6ff;
+    font-family: var(--font-mono);
+    font-weight: 500;
+}
+body.cc-admin .readiness-blocker:not(:empty) {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid rgba(240, 85, 77, 0.45);
+    color: #f0554d;
+    background: rgba(240, 85, 77, 0.08);
+    font-size: 0.78rem;
+}
+
+/* ---------- PHASE D: Settings groups ---------- */
+.nc-settings-stage {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 12px 14px 24px;
+    align-items: start;
+}
+body.cc-admin .nc-settings-stage .settings-gateway-card,
+body.cc-admin .nc-settings-stage .nc-settings-group[data-group="gateway"],
+body.cc-admin .nc-settings-stage .nc-danger-zone,
+body.cc-admin .nc-settings-stage .market-prices-card {
+    grid-column: 1 / -1;
+}
+body.cc-admin .nc-settings-group .form-sci-group {
+    margin-bottom: 14px;
+}
+body.cc-admin .nc-settings-group .form-sci-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(150, 190, 215, 0.85);
+}
+body.cc-admin .nc-settings-group .input-sci,
+body.cc-admin .nc-settings-group input.input-sci,
+body.cc-admin .nc-settings-group select.input-sci,
+body.cc-admin #setting-gemini-key,
+body.cc-admin #setting-elevenlabs-key,
+body.cc-admin #voice-provider-select {
+    width: 100%;
+    max-width: 100%;
+    background: rgba(4, 8, 14, 0.92) !important;
+    border: 1px solid rgba(59, 158, 255, 0.28) !important;
+    color: #e8f1f8 !important;
+    border-radius: 2px !important;
+    padding: 10px 12px !important;
+    box-shadow: none !important;
+}
+body.cc-admin .nc-settings-group .form-sci-group small,
+body.cc-admin .nc-settings-group .section-desc-para {
+    color: rgba(150, 185, 210, 0.72) !important;
+    font-size: 0.78rem;
+}
+.nc-check-row {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    text-transform: none !important;
+    letter-spacing: 0.02em !important;
+    font-size: 0.88rem !important;
+    color: #e8f1f8 !important;
+}
+body.cc-admin .nc-danger-zone {
+    border-color: rgba(240, 85, 77, 0.35);
+    background: linear-gradient(160deg, rgba(40, 12, 12, 0.45), rgba(5, 10, 18, 0.55));
+}
+body.cc-admin .nc-danger-zone::before {
+    border-top-color: rgba(240, 85, 77, 0.7);
+    border-left-color: rgba(240, 85, 77, 0.7);
+}
+body.cc-admin .nc-danger-zone .nc-module-head h3 i { color: #f0554d; }
+body.cc-admin .btn-danger-ghost {
+    background: rgba(240, 85, 77, 0.1);
+    border: 1px solid rgba(240, 85, 77, 0.45);
+    color: #f7a8a3;
+    padding: 10px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+body.cc-admin .btn-danger-ghost:hover {
+    background: rgba(240, 85, 77, 0.18);
+    color: #fff;
+}
+body.cc-admin .neena-flag-row {
+    border: 1px solid rgba(59, 158, 255, 0.12);
+    background: rgba(6, 12, 22, 0.45);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 2px;
+}
+body.cc-admin .rate-editor-card {
+    background: rgba(6, 12, 22, 0.5) !important;
+    border: 1px solid rgba(59, 158, 255, 0.14) !important;
+    border-radius: 2px !important;
+}
+body.cc-admin .rate-editor-card input,
+body.cc-admin .rate-editor-card select {
+    background: rgba(4, 8, 14, 0.92) !important;
+    border: 1px solid rgba(59, 158, 255, 0.22) !important;
+    color: #e8f1f8 !important;
+}
+
+/* Badge truthfulness — avoid fake green success paint */
+body.cc-admin .badge-neutral {
+    background: rgba(59, 158, 255, 0.06);
+    border: 1px solid rgba(59, 158, 255, 0.22);
+    color: rgba(180, 210, 230, 0.9);
+}
+body.cc-admin .badge-danger {
+    background: rgba(240, 85, 77, 0.12);
+    border-color: rgba(240, 85, 77, 0.4);
+    color: #f0554d;
+}
+
+/* ---------- Mobile stacks ---------- */
+@media (max-width: 960px) {
+    .nc-lab-stage,
+    .nc-monitor-stage,
+    .nc-settings-stage {
+        padding: 10px 10px 24px;
+        grid-template-columns: 1fr;
+        overflow-x: hidden;
+    }
+    body.cc-admin .nc-settings-stage .settings-gateway-card,
+    body.cc-admin .nc-settings-stage .nc-settings-group,
+    body.cc-admin .nc-settings-stage .nc-danger-zone,
+    body.cc-admin .nc-settings-stage .market-prices-card {
+        grid-column: 1;
+    }
+    body.cc-admin .nc-ops-grid {
+        grid-template-columns: 1fr;
+    }
+    body.cc-admin .nc-stream-hud {
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+    }
+    .nc-pipeline-legend {
+        gap: 4px;
+    }
+    .nc-pipe-arrow { display: none; }
+    .nc-pipe-step {
+        flex: 1 1 calc(50% - 6px);
+        justify-content: flex-start;
+    }
+    body.cc-admin .cc-command-drawer-panel.nc-console-panel,
+    body.cc-admin .nc-console-panel {
+        width: 100%;
+        height: min(92vh, 860px);
+        border-radius: 14px 14px 0 0;
+        border-left: none;
+        border-top: 1px solid rgba(59, 158, 255, 0.28);
+        align-self: flex-end;
+    }
+    body.cc-admin .nc-console-input-strip {
+        clip-path: none;
+        border-radius: 2px;
+    }
+}
+
+/* ============================================================
+   Round 2 polish (gate9h) — nav sync, readability, empty states,
+   pending-approval color logic, Home/Drawer/Mobile refinement.
+   Loaded last so these rules win over base + hybrid.
+   ============================================================ */
+
+/* ---------- 1. Active nav highlight: hover != selected ---------- */
+body.cc-admin .nav-btn {
+    position: relative;
+    color: rgba(184, 208, 222, 0.82);
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+body.cc-admin .nav-btn i {
+    color: rgba(120, 165, 190, 0.6);
+    transition: color 0.18s ease;
+}
+/* Hover = subtle wash only, never looks selected */
+body.cc-admin .nav-btn:hover:not(.active) {
+    background: rgba(59, 158, 255, 0.05);
+    color: #dbeef8;
+    border-color: transparent;
+    box-shadow: none;
+}
+body.cc-admin .nav-btn:hover:not(.active) i { color: rgba(91, 231, 255, 0.75); }
+/* Selected = clear cyan state + left accent bar */
+body.cc-admin .nav-btn.active {
+    background: rgba(59, 158, 255, 0.09);
+    border-color: rgba(59, 158, 255, 0.28);
+    color: #eaf6fb;
+    box-shadow: inset 0 0 18px rgba(59, 158, 255, 0.06);
+}
+body.cc-admin .nav-btn.active::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: 18%;
+    bottom: 18%;
+    width: 2px;
+    border-radius: 2px;
+    background: #6eb6ff;
+    box-shadow: 0 0 10px rgba(59, 158, 255, 0.6);
+}
+body.cc-admin .nav-btn.active i {
+    color: #6eb6ff;
+    text-shadow: 0 0 8px rgba(59, 158, 255, 0.4);
+}
+
+/* ---------- 4. Pending-approval color logic ---------- */
+/* Default (no pending) = neutral cyan HUD, NOT amber */
+body.cc-admin .nc-hud-attention {
+    border-color: rgba(59, 158, 255, 0.18);
+    background: linear-gradient(160deg, rgba(8, 18, 32, 0.34), rgba(5, 10, 18, 0.2));
+    box-shadow:
+        0 0 0 1px rgba(59, 158, 255, 0.04) inset,
+        0 10px 30px rgba(0, 0, 0, 0.28);
+}
+body.cc-admin .nc-hud-attention::before {
+    border-top-color: rgba(59, 158, 255, 0.7);
+    border-left-color: rgba(59, 158, 255, 0.7);
+}
+body.cc-admin .nc-hud-attention::after {
+    border-bottom-color: rgba(59, 158, 255, 0.4);
+    border-right-color: rgba(59, 158, 255, 0.4);
+}
+body.cc-admin .nc-hud-attention .nc-hud-title { color: rgba(150, 190, 215, 0.85); }
+/* Has pending = amber attention */
+body.cc-admin .nc-hud-attention.has-pending {
+    border-color: rgba(245, 165, 36, 0.5);
+    background: linear-gradient(160deg, rgba(36, 24, 10, 0.4), rgba(5, 10, 18, 0.22));
+    box-shadow:
+        0 0 0 1px rgba(245, 165, 36, 0.08) inset,
+        0 10px 30px rgba(0, 0, 0, 0.3);
+}
+body.cc-admin .nc-hud-attention.has-pending::before {
+    border-top-color: rgba(245, 165, 36, 0.85);
+    border-left-color: rgba(245, 165, 36, 0.85);
+}
+body.cc-admin .nc-hud-attention.has-pending::after {
+    border-bottom-color: rgba(245, 165, 36, 0.55);
+    border-right-color: rgba(245, 165, 36, 0.55);
+}
+body.cc-admin .nc-hud-attention.has-pending .nc-hud-title { color: #f5a524; }
+body.cc-admin .nc-hud-attention.has-pending .nc-hud-body { color: #ffe6bf; }
+/* Urgent/blocking = stronger amber emphasis */
+body.cc-admin .nc-hud-attention.has-pending.is-urgent {
+    border-color: rgba(245, 165, 36, 0.85);
+    box-shadow:
+        0 0 0 1px rgba(245, 165, 36, 0.18) inset,
+        0 0 26px rgba(245, 165, 36, 0.22),
+        0 10px 30px rgba(0, 0, 0, 0.32);
+}
+body.cc-admin .nc-hud-attention .nc-hud-btn {
+    border-color: rgba(59, 158, 255, 0.35);
+    color: #dceffa;
+}
+body.cc-admin .nc-hud-attention.has-pending .nc-hud-btn {
+    border-color: rgba(245, 165, 36, 0.55);
+    color: #ffe6bf;
+}
+
+/* ---------- 2. Readability lift: Lab / Monitor / Settings ---------- */
+/* Slightly brighter module fill + crisper separation than round 1 */
+body.cc-admin .nc-lab-stage .nc-hud-module,
+body.cc-admin .nc-monitor-stage .nc-hud-module,
+body.cc-admin .nc-settings-stage .nc-hud-module {
+    background: linear-gradient(160deg, rgba(14, 26, 42, 0.82), rgba(8, 15, 26, 0.72));
+    border-color: rgba(59, 158, 255, 0.22);
+    box-shadow:
+        0 0 0 1px rgba(59, 158, 255, 0.05) inset,
+        0 14px 40px rgba(0, 0, 0, 0.34);
+}
+body.cc-admin .nc-lab-stage .nc-module-head,
+body.cc-admin .nc-monitor-stage .nc-module-head,
+body.cc-admin .nc-settings-stage .nc-module-head {
+    border-bottom-color: rgba(59, 158, 255, 0.2);
+}
+body.cc-admin .nc-lab-stage .nc-module-head h3,
+body.cc-admin .nc-monitor-stage .nc-module-head h3,
+body.cc-admin .nc-settings-stage .nc-module-head h3 {
+    color: #f2f9fc;
+}
+/* Section subheadings brighter */
+body.cc-admin .nc-lab-task h4,
+body.cc-admin .nc-lab-active-pipeline h4,
+body.cc-admin .neena-lab-work-section h4,
+body.cc-admin .nc-ops-module h4,
+body.cc-admin .nc-event-feed h4 {
+    color: #a8d6ea;
+}
+/* Primary data text brighter */
+body.cc-admin .nc-telemetry-rows .telemetry-row strong,
+body.cc-admin .readiness-row strong,
+body.cc-admin .nc-tile-v {
+    color: #7fefff;
+}
+body.cc-admin .nc-telemetry-rows .telemetry-row span:first-child,
+body.cc-admin .nc-ops-module h4,
+body.cc-admin .readiness-row span:first-child {
+    color: rgba(176, 208, 226, 0.9);
+}
+/* Settings labels + helper text more legible */
+body.cc-admin .nc-settings-group .form-sci-group label {
+    color: #a8d6ea;
+}
+body.cc-admin .nc-settings-group .form-sci-group small,
+body.cc-admin .nc-settings-group .section-desc-para,
+body.cc-admin .nc-truth-note {
+    color: rgba(170, 200, 218, 0.82) !important;
+}
+body.cc-admin .nc-settings-group .input-sci,
+body.cc-admin #setting-gemini-key,
+body.cc-admin #setting-elevenlabs-key,
+body.cc-admin #voice-provider-select {
+    background: rgba(6, 12, 22, 0.96) !important;
+    border-color: rgba(59, 158, 255, 0.34) !important;
+    color: #f2f9fc !important;
+}
+body.cc-admin .nc-settings-group .input-sci::placeholder {
+    color: rgba(150, 185, 205, 0.55);
+}
+body.cc-admin .nc-settings-group .input-sci:focus,
+body.cc-admin #setting-gemini-key:focus,
+body.cc-admin #setting-elevenlabs-key:focus {
+    border-color: #6eb6ff !important;
+    box-shadow: 0 0 0 2px rgba(59, 158, 255, 0.12) !important;
+}
+/* WhatsApp instructions readable */
+body.cc-admin .whatsapp-linker-instructions h4 { color: #a8d6ea; }
+body.cc-admin .whatsapp-linker-instructions ol { color: rgba(200, 222, 236, 0.9); }
+body.cc-admin .qr-spinner p { color: rgba(180, 208, 224, 0.85); }
+
+/* ---------- 3. Premium empty states ---------- */
+.nc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 26px 20px;
+    text-align: center;
+    border: 1px dashed rgba(59, 158, 255, 0.22);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(59, 158, 255, 0.05), transparent 70%),
+        rgba(6, 12, 22, 0.4);
+    border-radius: 2px;
+    color: rgba(190, 214, 228, 0.9);
+}
+.nc-empty .nc-empty-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 158, 255, 0.35);
+    background: rgba(59, 158, 255, 0.06);
+    color: #6eb6ff;
+    font-size: 1rem;
+}
+.nc-empty .nc-empty-title {
+    margin: 2px 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #dcecf5;
+}
+.nc-empty .nc-empty-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(165, 195, 214, 0.8);
+    max-width: 340px;
+}
+/* Upgrade legacy .empty-state look inside HUD screens */
+body.cc-admin .nc-lab-stage .empty-state,
+body.cc-admin .nc-monitor-stage .empty-state,
+body.cc-admin .nc-settings-stage .empty-state {
+    color: rgba(175, 202, 220, 0.85);
+    padding: 18px 16px;
+    border: 1px dashed rgba(59, 158, 255, 0.16);
+    background: rgba(6, 12, 22, 0.32);
+    border-radius: 2px;
+    text-align: center;
+}
+/* Drawer empty state = "ready for command" */
+.nc-console-empty {
+    position: relative;
+    margin: 20px 8px;
+    padding: 26px 18px 22px;
+    border: 1px dashed rgba(59, 158, 255, 0.26);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(59, 158, 255, 0.06), transparent 70%),
+        rgba(6, 12, 22, 0.4);
+}
+/* CSS-only "command ready" glyph (no icon-font dependency) */
+.nc-console-empty::before {
+    content: ">_";
+    display: block;
+    margin: 0 auto 12px;
+    width: 40px;
+    height: 30px;
+    line-height: 30px;
+    font-family: var(--font-mono, monospace);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #6eb6ff;
+    border: 1px solid rgba(59, 158, 255, 0.4);
+    border-radius: 3px;
+    background: rgba(59, 158, 255, 0.06);
+    box-shadow: 0 0 14px rgba(59, 158, 255, 0.15);
+}
+
+/* ---------- 5. Home panel refinement ---------- */
+/* Integrate HUD panels with hero: gentler fill, tighter edges */
+body.cc-admin .nc-panel .nc-hud,
+body.cc-admin .nc-panel .nc-hud-stack {
+    background: linear-gradient(160deg, rgba(8, 20, 34, 0.32), rgba(5, 10, 18, 0.16));
+    border-color: rgba(59, 158, 255, 0.2);
+    backdrop-filter: blur(7px) saturate(1.18);
+}
+body.cc-admin .nc-panel .nc-hud-title { color: rgba(150, 190, 215, 0.82); }
+body.cc-admin .nc-panel .nc-hud-body { color: #eef6fb; }
+/* Command strip: clearer CTA + command-channel input feel */
+body.cc-admin .nc-command-trigger span {
+    color: #dfeef6;
+    font-weight: 500;
+}
+body.cc-admin .nc-command-hint {
+    color: #7fd8ef;
+    padding: 4px 10px;
+    border: 1px solid rgba(59, 158, 255, 0.3);
+    border-radius: 2px;
+    background: rgba(59, 158, 255, 0.06);
+}
+body.cc-admin .nc-command-strip:hover .nc-command-hint {
+    color: #041018;
+    background: #6eb6ff;
+    border-color: #6eb6ff;
+}
+body.cc-admin .nc-command-mic {
+    color: #6eb6ff;
+}
+body.cc-admin .nc-command-mic:hover {
+    color: #041018;
+    background: #6eb6ff;
+}
+
+/* ---------- 6. Drawer / console composition ---------- */
+body.cc-admin .nc-console-head {
+    background: linear-gradient(90deg, rgba(59, 158, 255, 0.1), transparent 75%);
+    padding: 14px 16px 12px;
+}
+body.cc-admin .cc-command-drawer-actions .cc-header-voice-toggle.is-on {
+    background: rgba(59, 158, 255, 0.16);
+    border-color: rgba(59, 158, 255, 0.5);
+    color: #eaf6fb;
+}
+body.cc-admin .nc-drawer-thread .agent-context-strip {
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    background: rgba(59, 158, 255, 0.04);
+    border: 1px solid rgba(59, 158, 255, 0.14);
+    border-radius: 2px;
+}
+body.cc-admin .nc-console-compose {
+    gap: 10px;
+    padding-top: 12px;
+}
+body.cc-admin .nc-console-compose .chat-model-selector-bar label {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(160, 195, 214, 0.85);
+}
+body.cc-admin .nc-console-compose #chat-model-selector {
+    background: rgba(6, 12, 22, 0.92) !important;
+    border: 1px solid rgba(59, 158, 255, 0.28) !important;
+    color: #eaf6fb !important;
+    border-radius: 2px;
+    padding: 8px 10px;
+}
+body.cc-admin .nc-console-input-strip {
+    border-color: rgba(59, 158, 255, 0.4);
+}
+body.cc-admin .nc-console-input-strip input::placeholder {
+    color: rgba(150, 185, 205, 0.6);
+}
+
+/* ---------- 7. Mobile final polish ---------- */
+@media (max-width: 960px) {
+    body.cc-admin .nc-header-cluster {
+        gap: 8px;
+        padding: 4px 8px;
+        flex-wrap: nowrap;
+        max-width: none;
+        overflow: visible;
+    }
+    body.cc-admin .nc-header-cluster .cc-live-clock {
+        font-size: 0.64rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    body.cc-admin .nc-status-rail { gap: 5px; padding-left: 6px; padding-right: 6px; flex-shrink: 0; }
+    /* Breathing room between hero, strip, cards */
+    body.cc-admin .nc-hero { margin-bottom: 6px; }
+    body.cc-admin .nc-command-bar { margin: 12px 14px 16px; }
+    body.cc-admin .nc-panel { gap: 10px; margin-bottom: 10px; }
+    body.cc-admin .nc-panel .nc-hud,
+    body.cc-admin .nc-panel .nc-hud-stack { padding: 12px 14px; }
+    /* Drawer bottom sheet spacing */
+    body.cc-admin .nc-console-panel .cc-command-drawer-body { padding: 16px; gap: 14px; }
+    body.cc-admin .nc-console-panel .nc-console-compose { padding-bottom: 6px; }
+    body.cc-admin .nc-console-input-strip input { padding: 14px 14px !important; }
+    body.cc-admin .nc-lab-stage,
+    body.cc-admin .nc-monitor-stage,
+    body.cc-admin .nc-settings-stage { padding: 12px 12px 28px; gap: 14px; }
+    body.cc-admin .nc-lab-stage .nc-hud-module,
+    body.cc-admin .nc-monitor-stage .nc-hud-module,
+    body.cc-admin .nc-settings-stage .nc-hud-module { padding: 14px; }
+}
+
+/* Phones: drop the clock so pulse dots + build badge never collide */
+@media (max-width: 560px) {
+    body.cc-admin .nc-header-cluster .cc-live-clock { display: none; }
+    body.cc-admin .nc-status-rail .status-dot { width: 17px; height: 17px; }
+}
+
+/* Plan §6 — header sound mute (default muted / OFF) */
+body.cc-admin .nc-sound-toggle {
+    min-width: 34px;
+    padding: 6px 8px;
+    border-color: rgba(59, 158, 255, 0.22);
+    color: var(--ink-2, #8fa3bb);
+    background: rgba(8, 16, 28, 0.55);
+}
+body.cc-admin .nc-sound-toggle:not(.is-muted) {
+    color: var(--core, #3b9eff);
+    border-color: rgba(59, 158, 255, 0.45);
+}
+body.cc-admin .nc-sound-toggle.is-muted {
+    opacity: 0.72;
+}
+

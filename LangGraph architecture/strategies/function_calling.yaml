@@ -1,0 +1,68 @@
+identity:
+  name: function_calling
+  author: Dify
+  label:
+    en_US: FunctionCalling
+    zh_Hans: FunctionCalling
+    pt_BR: FunctionCalling
+description:
+  en_US: "Recommended. Uses the model's native function calling capability for tool invocation. Works best with most modern models (GPT-4o, Claude, Qwen, etc.)."
+  zh_Hans: "推荐使用。通过模型原生的函数调用能力来调用工具，适用于大多数主流模型（GPT-4o、Claude、Qwen 等）。"
+  pt_BR: "Recomendado. Usa a capacidade nativa de chamada de função do modelo para invocar ferramentas. Funciona melhor com a maioria dos modelos modernos (GPT-4o, Claude, Qwen, etc.)."
+features:
+  - history-messages
+parameters:
+  - name: model
+    type: model-selector
+    scope: tool-call&llm
+    required: true
+    label:
+      en_US: Model
+      zh_Hans: 模型
+      pt_BR: Model
+  - name: tools
+    type: array[tools]
+    required: true
+    label:
+      en_US: Tool list
+      zh_Hans: 工具列表
+      pt_BR: Tool list
+  - name: instruction
+    type: string
+    required: true
+    label:
+      en_US: Instruction
+      zh_Hans: 指令
+      pt_BR: Instruction
+    auto_generate:
+      type: prompt_instruction
+    template:
+      enabled: true
+  - name: context
+    type: any
+    scope: array[object]
+    required: false
+    label:
+      en_US: Context
+      zh_Hans: 上下文
+      pt_BR: Context
+  - name: query
+    type: string
+    required: true
+    label:
+      en_US: Query
+      zh_Hans: 查询
+      pt_BR: Query
+  - name: maximum_iterations
+    type: number
+    required: true
+    label:
+      en_US: Maximum Iterations
+      zh_Hans: 最大迭代次数
+      pt_BR: Maximum Iterations
+    default: 3
+    max: 500
+    min: 1
+extra:
+  python:
+    source: strategies/function_calling.py

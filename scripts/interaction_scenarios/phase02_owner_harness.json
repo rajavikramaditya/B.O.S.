@@ -1,0 +1,56 @@
+{
+  "name": "phase02_owner_harness",
+  "description": "Phase 0-2 owner-like: memory ids, confirm spelling, working context follow-up, system self-knowledge. Non-destructive (list + propose cancel only; no delete/broadcast).",
+  "turns": [
+    {
+      "message": "Yaade dikhayo",
+      "expect": {
+        "action_contains": ["MANAGE_MEMORY", "PERMANENT_MEMORY"],
+        "reply_must_contain_any": ["id=", "permanent", "memory", "saved"]
+      }
+    },
+    {
+      "message": "Tum kaise kaam karti ho confirm kab maangti ho aur customer kya kar sakta hai",
+      "expect": {
+        "reply_must_contain_any": ["confirm", "haan", "customer", "tool", "command"]
+      }
+    },
+    {
+      "message": "Station tagline yaad rakhna chahiye: Ab sunega poora Orai, Vocal for Local — propose only",
+      "expect": {
+        "action_contains": ["PROPOSE", "PERMANENT_MEMORY", "MANAGE"],
+        "reply_must_contain_any": ["confirm", "haan", "save", "permanent"]
+      }
+    },
+    {
+      "message": "Nahi",
+      "expect": {
+        "action_contains": ["CANCEL", "MEMORY"],
+        "reply_must_not_contain": ["postgres_id", "save kar diya", "yaad rakh liya"]
+      }
+    },
+    {
+      "message": "Stream pr kya chal raha hai",
+      "expect": {}
+    },
+    {
+      "message": "Result??",
+      "expect": {
+        "reply_must_not_contain": ["samajh nahi aaya", "kaunsa command"]
+      }
+    },
+    {
+      "message": "Hann",
+      "expect": {
+        "reply_must_not_contain": ["save permanently — \"Hann\"", "save permanently - \"Hann\""]
+      }
+    },
+    {
+      "message": "Sari yade dikhayo",
+      "expect": {
+        "reply_must_contain_any": ["id="],
+        "action_contains": ["MANAGE_MEMORY", "PERMANENT"]
+      }
+    }
+  ]
+}

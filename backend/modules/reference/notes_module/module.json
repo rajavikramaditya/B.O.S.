@@ -1,0 +1,13 @@
+{
+  "name": "notes_module",
+  "version": "1.0.0",
+  "author": "B.O.S. Reference Architecture",
+  "description": "Minimal reference module proving extension architecture.",
+  "capabilities": ["notes"],
+  "business_objects": ["Note"],
+  "permissions": ["create_note", "read_note"],
+  "dependencies": [],
+  "settings": {
+    "max_notes_per_user": 100
+  }
+}

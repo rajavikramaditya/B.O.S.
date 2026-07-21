@@ -1,0 +1,62 @@
+{
+  "name": "owner_smoke",
+  "description": "Safe owner-like smoke: greeting, status, time, memory list, continuity. No protected/broadcast actions.",
+  "channel_label": "agent_probe",
+  "turns": [
+    {
+      "id": "greet",
+      "message": "hello neena kaisi ho",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_substrings": ["Temporary runtime context", "model unavailable"]
+      }
+    },
+    {
+      "id": "status_short",
+      "message": "station status short me batao",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "prefer_actions": ["STATION_STATUS", "station_status", "STATUS"],
+        "forbid_substrings": ["jhooth", "fake"]
+      }
+    },
+    {
+      "id": "time",
+      "message": "time kitna hua hai",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 20000,
+        "prefer_actions": ["TIME_STATUS", "time_status"],
+        "forbid_substrings": ["CPU", "RAM usage"]
+      }
+    },
+    {
+      "id": "memory_list",
+      "message": "yaadein dikhao",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "prefer_actions": ["MANAGE_MEMORY", "manage_memory", "MEMORY_LIST"]
+      }
+    },
+    {
+      "id": "continuity",
+      "message": "jo abhi bataya usme se pehli wali yaad kya thi",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 25000,
+        "forbid_actions": ["send_azuracast", "generate_audio"]
+      }
+    },
+    {
+      "id": "concise_pref",
+      "message": "ab se short me jawab dena",
+      "expect": {
+        "reply_not_empty": true,
+        "max_latency_ms": 20000
+      }
+    }
+  ]
+}

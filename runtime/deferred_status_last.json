@@ -1,0 +1,14 @@
+{
+  "job_id": "9d967197-975",
+  "status": "failed",
+  "status_kind": "bundle",
+  "delay_seconds": 60,
+  "due_at": 1784183717.6377394,
+  "due_at_iso": "2026-07-16T06:35:17.637739+00:00",
+  "owner_message": "5 min baad status WhatsApp pe bhejo",
+  "created_at": "2026-07-16T06:34:17.637739+00:00",
+  "channel": "whatsapp",
+  "delivered": false,
+  "delivered_at": "2026-07-19T02:07:17.918356+00:00",
+  "message_preview": "[Neena deferred status — job 9d967197-975]\nKind=bundle. Fresh facts:\nNow playing (AzuraCast target): title=Unknown; artist=Unknown; stream_reachable=True.\nVM/cloud status summary.\n- Runtime mode: GCP-"
+}

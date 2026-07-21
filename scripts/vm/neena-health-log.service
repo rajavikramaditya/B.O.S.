@@ -1,0 +1,6 @@
+[Unit]
+Description=Neena lightweight health logger
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/neena-health-log.sh

@@ -1,0 +1,49 @@
+# M2-A2 local production memory stack mirror (shadow mode only).
+# Local development only. Not wired to live Neena memory/session backends.
+#
+# Start:
+#   docker compose -f docker-compose.memory.yml up -d
+# Stop:
+#   docker compose -f docker-compose.memory.yml down
+#
+# Defaults match backend/services/neena_memory_pg_repository.py and neena_redis_state.py.
+
+services:
+  neena-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: neena-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: neena_memory_shadow
+      POSTGRES_USER: neena_shadow
+      POSTGRES_PASSWORD: neena_shadow_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - neena_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neena_shadow -d neena_memory_shadow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  neena-redis:
+    image: redis:7-alpine
+    container_name: neena-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - neena_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  neena_postgres_data:
+  neena_redis_data:

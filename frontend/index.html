@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orai Radio — Command Center</title>
+    <link rel="stylesheet" href="style.css?v=gate9s">
+    <link rel="stylesheet" href="neena-hybrid.css?v=gate9s">
+    <link rel="stylesheet" href="neena-screens.css?v=gate9s">
+    <style>
+    @keyframes pulse {
+        0% { opacity: 0.4; transform: scale(0.9); }
+        100% { opacity: 1; transform: scale(1.1); }
+    }
+    </style>
+    <script>
+    (function () {
+        try {
+            if (sessionStorage.getItem('cc_unlocked_hint') === '1') {
+                document.documentElement.classList.add('cc-unlock-hint');
+            }
+        } catch (e) { /* ignore */ }
+        document.documentElement.classList.add('cc-session-pending');
+    })();
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preload" as="image" href="assets/gate-radio-tower.webp" type="image/webp">
+    <link rel="preload" as="image" href="assets/gate-cityscape.webp" type="image/webp">
+</head>
+<body class="cc-admin cc-locked" data-theme="dark" data-build="gate9s-__CC_COMMIT__">
+    <!-- Phrase gate: cityscape + blended radio tower (no portrait, no lock card) -->
+    <div id="cc-phrase-gate" class="cc-phrase-gate" role="dialog" aria-labelledby="cc-gate-title" aria-modal="true">
+        <div class="cc-gate-backdrop" aria-hidden="true"></div>
+        <div class="cc-gate-mesh" aria-hidden="true"></div>
+        <div class="cc-gate-panel">
+            <header class="cc-gate-top">
+                <p class="cc-gate-brand">Orai Radio</p>
+                <h1 id="cc-gate-title" class="cc-gate-title">Command Center</h1>
+            </header>
+
+            <div class="cc-gate-neena is-idle" id="cc-gate-neena">
+                <div class="cc-gate-hero" id="cc-gate-avatar" data-mode="idle" role="img" aria-label="Orai Radio">
+                    <img class="cc-gate-tower" id="cc-gate-portrait" src="assets/gate-radio-tower.webp" alt="" width="512" height="512" decoding="async">
+                </div>
+                <p class="cc-gate-state visually-hidden" id="cc-gate-state-label">Locked</p>
+            </div>
+
+            <div class="cc-gate-bottom">
+                <p class="neena-heard-line cc-gate-heard" id="neena-heard-line">Tap the mic, or type below.</p>
+                <p class="cc-gate-reply visually-hidden" id="cc-gate-reply" aria-live="polite"></p>
+                <button type="button" class="cc-gate-mic" id="gate-mic-btn" onclick="startUnlockListening()" title="Speak owner phrase">
+                    <i class="fa-solid fa-microphone" id="gate-mic-icon"></i>
+                    <span id="gate-mic-label" class="cc-gate-mic-label">Tap to say phrase</span>
+                </button>
+                <div class="cc-gate-manual" id="cockpit-manual-unlock-panel">
+                    <label class="cc-gate-label visually-hidden" for="cockpit-unlock-phrase-input">Owner phrase</label>
+                    <div class="cc-gate-searchbar">
+                        <span class="cc-gate-search-prefix">Unlock</span>
+                        <input type="password" class="cc-gate-input" id="cockpit-unlock-phrase-input" placeholder="Owner phrase" autocomplete="off" onkeydown="if(event.key==='Enter')unlockCommandCenter()">
+                        <button type="button" class="cc-gate-search-go" onclick="unlockCommandCenter()" title="Continue">
+                            <i class="fa-solid fa-unlock-keyhole"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compatibility stub only — never shown on gate -->
+            <div class="cockpit-lock-state hidden" id="cockpit-lock-state" hidden aria-hidden="true">
+                <p class="cockpit-lock-title">Command Center locked</p>
+                <p class="cockpit-lock-hint">Tap mic and say the owner phrase</p>
+                <button type="button" class="cockpit-manual-unlock-link" id="cockpit-manual-unlock-toggle" onclick="toggleManualUnlockPanel()">Manual unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-wrapper" id="cc-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar-panel" id="cc-sidebar">
+            <div class="sidebar-brand">
+                <button type="button" class="cc-sidebar-toggle" id="cc-sidebar-toggle" onclick="toggleCcSidebar()" title="Collapse sidebar" aria-label="Collapse sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="brand-glow-logo">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </div>
+                <div class="brand-info">
+                    <h2>Orai Radio</h2>
+                    <span>Command Center</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" id="tab-btn-console" onclick="switchTab('console')" title="Neena">
+                    <i class="fa-solid fa-circle-nodes"></i> <span class="nav-label">Neena</span>
+                </button>
+                <button class="nav-btn" id="tab-btn-neenalab" onclick="switchTab('neenalab')" title="Lab">
+                    <i class="fa-solid fa-flask"></i> <span class="nav-label">Lab</span>
+                </button>
+                <button class="nav-btn" id="tab-btn-monitor" onclick="switchTab('monitor')" title="Monitor">
+                    <i class="fa-solid fa-chart-line"></i> <span class="nav-label">Monitor</span>
+                </button>
+                <button class="nav-btn" id="tab-btn-settings" onclick="switchTab('settings')" title="Settings">
+                    <i class="fa-solid fa-sliders"></i> <span class="nav-label">Settings</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="main-viewport">
+            <header class="top-nav-bar nc-top-nav">
+                <div class="page-title-area">
+                    <button type="button" class="cc-sidebar-toggle cc-sidebar-toggle-mobile" onclick="toggleCcSidebar()" title="Menu" aria-label="Open menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 id="viewport-title">Neena</h1>
+                    <p id="viewport-subtitle" class="visually-hidden">Station manager agent</p>
+                </div>
+                <div class="cc-header-live nc-header-cluster">
+                    <time class="cc-live-clock" id="cc-live-clock" datetime="">—</time>
+                    <div class="cc-header-dots nc-status-rail" id="cockpit-status-dots" title="Station pulse">
+                        <span class="status-dot" id="dot-backend" title="Backend"><i class="fa-solid fa-server"></i></span>
+                        <span class="status-dot" id="dot-stream" title="Stream"><i class="fa-solid fa-signal"></i></span>
+                        <span class="status-dot" id="dot-azura" title="AzuraCast"><i class="fa-solid fa-tower-broadcast"></i></span>
+                        <span class="status-dot" id="dot-tts" title="TTS"><i class="fa-solid fa-wave-square"></i></span>
+                        <span class="status-dot" id="dot-whatsapp" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></span>
+                    </div>
+                    <span class="cc-side-status-inline hidden" id="cc-side-status" aria-hidden="true">
+                        <strong id="sidebar-server-text">—</strong>
+                        <strong id="sidebar-whatsapp-text">—</strong>
+                        <span class="dot offline" id="sidebar-server-dot"></span>
+                        <span class="dot offline" id="sidebar-whatsapp-dot"></span>
+                        <span class="dot offline" id="sidebar-gemini-sidebar"></span>
+                        <strong id="sidebar-gemini-text">—</strong>
+                    </span>
+                    <button type="button" class="cc-build-badge" id="cc-build-badge" onclick="openAboutModal()" title="Build / version info — click for details">
+                        <i class="fa-solid fa-code-branch"></i>
+                        <span id="cc-build-badge-text">Build…</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm nc-console-btn" id="nc-command-trigger" onclick="openCommandDrawer()" title="Open Neena console" aria-label="Open Neena console">
+                        <i class="fa-solid fa-terminal"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm nc-header-mic" id="cc-header-mic-btn" onclick="toggleVoiceListening()" title="Talk to Neena" aria-label="Talk to Neena">
+                        <i class="fa-solid fa-microphone" id="cc-header-mic-icon"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm nc-header-call" id="cc-header-call-btn" onclick="toggleNeenaLiveCall()" title="Live with Neena" aria-label="Live with Neena" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-light, #10b981); color: var(--accent-light, #10b981); font-weight: bold; border-radius: 20px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease;">
+                        <span style="display: inline-block; width: 8px; height: 8px; background: var(--accent-light, #10b981); border-radius: 50%; box-shadow: 0 0 8px var(--accent-light, #10b981);" id="cc-header-live-dot"></span>
+                        <span id="cc-header-live-text">Go Live</span>
+                    </button>
+                    <!-- Plan §6: orb sound cues. Default OFF (localStorage cc-sound). -->
+                    <button type="button" class="btn btn-secondary btn-sm nc-sound-toggle is-muted" id="cc-sound-toggle" onclick="toggleCcSound()" title="Orb sound cues (default off)" aria-pressed="false" aria-label="Toggle orb sound cues">
+                        <i class="fa-solid fa-volume-xmark" id="cc-sound-icon"></i>
+                    </button>
+                    <!-- Light theme retired (Neena Core). Handler kept for e2e contract; visually hidden. -->
+                    <button type="button" class="btn btn-secondary btn-sm cc-theme-toggle visually-hidden" id="cc-theme-toggle" onclick="toggleCcTheme()" title="Theme locked to dark" tabindex="-1" aria-hidden="true">
+                        <i class="fa-solid fa-moon" id="cc-theme-icon"></i>
+                    </button>
+                    <div class="cockpit-unlocked-actions hidden" id="cockpit-unlocked-actions">
+                        <button type="button" class="btn btn-secondary btn-sm nc-lock-btn" onclick="lockCommandCenter()">Lock</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Screens Container -->
+            <div class="screen-viewports">
+                
+                <!-- Tab 1: Neena Core — cinematic hologram stage (chat in drawer) -->
+                <section class="screen-panel active" id="screen-console">
+                    <div class="neena-core-layout nc-stage" id="neena-core-layout">
+                        <!-- Midnight space field (not the globe) -->
+                        <div class="nc-space" aria-hidden="true"></div>
+
+                        <!-- Shared center: JPG core + CSS FX (size LOCKED). Gate untouched. -->
+                        <div class="nc-orb-anchor" id="nc-orb-anchor">
+                            <div class="nc-hero" id="nc-hero" aria-hidden="true">
+                                <img class="nc-hero-img nc-orb-core-img" id="nc-orb-fallback" src="assets/neena-brain-core.jpg" alt="" width="1920" height="1080" decoding="async">
+                                <div class="nc-hero-tone"></div>
+                                <div class="nc-hero-depth"></div>
+                                <div class="nc-hero-vignette"></div>
+                            </div>
+
+                            <!-- State FX + data-orb-state contract for wiring/e2e -->
+                            <div class="nc-orb nc-globe nc-orb-hotspot" id="neena-core-orb" data-orb-state="idle" role="img" aria-label="Neena AI Brain Core">
+                                <div class="nc-orb-fx" aria-hidden="true">
+                                    <div class="nc-state-veil"></div>
+                                    <div class="nc-wave nc-wave-1"></div>
+                                    <div class="nc-wave nc-wave-2"></div>
+                                    <div class="nc-wave nc-wave-3"></div>
+                                    <div class="nc-neural nc-neural-1"></div>
+                                    <div class="nc-neural nc-neural-2"></div>
+                                    <div class="nc-scanlines"></div>
+                                    <div class="nc-beam"></div>
+                                    <div class="nc-waveform-halo">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </div>
+                                    <div class="nc-particles">
+                                        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                    </div>
+                                    <div class="nc-lock-orbit"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="nc-orb-caption">
+                            <p class="nc-orb-state" id="nc-orb-state-label">Idle — monitoring station</p>
+                            <p class="nc-orb-sub" id="nc-orb-task-line">Orai · Jalaun · Bundelkhand</p>
+                            <p class="nc-orb-demo-hint hidden" id="nc-orb-demo-hint">Local orb demo active · not production</p>
+                        </div>
+
+                        <aside class="nc-panel nc-panel-left" aria-label="Task and approvals">
+                            <div class="nc-hud">
+                                <h3 class="nc-hud-title">Current task</h3>
+                                <p class="nc-hud-body" id="nc-current-task">Not checked</p>
+                            </div>
+                            <div class="nc-hud">
+                                <h3 class="nc-hud-title">Last action</h3>
+                                <p class="nc-hud-body" id="nc-last-action">—</p>
+                            </div>
+                            <div class="nc-hud nc-hud-attention">
+                                <h3 class="nc-hud-title">Pending approval</h3>
+                                <p class="nc-hud-body" id="nc-pending-approval">Not checked</p>
+                                <button type="button" class="nc-hud-btn" onclick="switchTab('neenalab')">Open Lab</button>
+                            </div>
+                        </aside>
+
+                        <aside class="nc-panel nc-panel-right" aria-label="Station status">
+                            <div class="nc-hud nc-hud-stack" id="nc-status-grid">
+                                <div class="nc-hud-row" id="nc-tile-stream"><span class="nc-tile-k">Stream</span><span class="nc-tile-v" id="nc-status-stream">Not checked</span></div>
+                                <div class="nc-hud-row" id="nc-tile-azura"><span class="nc-tile-k">Azura</span><span class="nc-tile-v" id="nc-status-azura">Not checked</span></div>
+                                <div class="nc-hud-row" id="nc-tile-tts"><span class="nc-tile-k">TTS</span><span class="nc-tile-v" id="nc-status-tts">Not checked</span></div>
+                                <div class="nc-hud-row" id="nc-tile-whatsapp"><span class="nc-tile-k">WhatsApp</span><span class="nc-tile-v" id="nc-status-whatsapp">Not checked</span></div>
+                                <div class="nc-hud-row" id="nc-tile-backend"><span class="nc-tile-k">Backend</span><span class="nc-tile-v" id="nc-status-backend">Not checked</span></div>
+                            </div>
+                            <div class="nc-hud">
+                                <h3 class="nc-hud-title">Active jobs</h3>
+                                <div class="nc-jobs" id="nc-active-jobs">
+                                    <p class="nc-muted">Not checked</p>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <!-- Command strip removed — console opens from header #nc-command-trigger -->
+                    </div>
+
+                    <!-- Hidden status hooks (Monitor / Settings / setNeenaState still update these) -->
+                    <div class="hidden" aria-hidden="true">
+                        <span id="cockpit-state-dot" class="state-dot online"></span>
+                        <span id="cockpit-state-label">Neena Online</span>
+                        <div id="cockpit-neena-state-badge"></div>
+                        <input type="checkbox" id="enable-voice-synthesis-main" class="hidden" checked>
+                        <div id="provider-status-widget">
+                            <span id="status-val-model"></span>
+                            <span id="status-val-actual"></span>
+                            <span id="status-val-llm-status"></span>
+                        </div>
+                        <div id="launch-status-badges">
+                            <span id="badge-backend"></span>
+                            <span id="badge-postgres"></span>
+                            <span id="badge-redis"></span>
+                        </div>
+                        <input type="checkbox" id="enable-voice-synthesis" checked>
+                        <pre id="voice-diagnostics-output" class="hidden"></pre>
+                        <textarea id="generated-script-output" class="hidden" readonly></textarea>
+                    </div>
+                </section>
+
+                <!-- Tab 2: Neena Lab — broadcast production pipeline -->
+                <section class="screen-panel" id="screen-neenalab">
+                    <div class="neena-lab-layout neena-lab-layout-single nc-lab-stage">
+                        <div class="nc-hud-module neena-lab-work-card">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-flask"></i> Neena Lab — Broadcast Pipeline</h3>
+                                <span class="badge badge-neutral" id="neena-lab-mode-badge">Checking…</span>
+                            </div>
+
+                            <div class="nc-pipeline-legend" aria-label="Broadcast pipeline stages">
+                                <div class="nc-pipe-step"><span class="nc-pipe-num">1</span><span>Script</span></div>
+                                <span class="nc-pipe-arrow" aria-hidden="true"></span>
+                                <div class="nc-pipe-step nc-pipe-attention"><span class="nc-pipe-num">2</span><span>Approval</span></div>
+                                <span class="nc-pipe-arrow" aria-hidden="true"></span>
+                                <div class="nc-pipe-step"><span class="nc-pipe-num">3</span><span>Audio</span></div>
+                                <span class="nc-pipe-arrow" aria-hidden="true"></span>
+                                <div class="nc-pipe-step"><span class="nc-pipe-num">4</span><span>Azura Push</span></div>
+                                <span class="nc-pipe-arrow" aria-hidden="true"></span>
+                                <div class="nc-pipe-step"><span class="nc-pipe-num">5</span><span>Stream Verify</span></div>
+                            </div>
+
+                            <div class="neena-lab-section nc-lab-station-clock">
+                                <div class="card-header-actions lab-toolbar">
+                                    <h4><i class="fa-solid fa-clock"></i> Station Clock Plan</h4>
+                                    <div class="lab-toolbar-actions">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="createStationClockPlan()">4h plan</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="draftNextStationPlanBlock()">Draft next</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="fetchStationClockPlan()">
+                                            <i class="fa-solid fa-arrows-rotate"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="neena-lab-station-clock">
+                                    <p class="empty-state">No active Station Clock plan.</p>
+                                </div>
+                            </div>
+
+                            <div class="neena-lab-section neena-lab-task-strip nc-lab-task">
+                                <h4><i class="fa-solid fa-circle-play"></i> Current Task</h4>
+                                <div id="neena-lab-current-task">
+                                    <p class="empty-state">Neena is idle. No active task.</p>
+                                </div>
+                            </div>
+
+                            <div class="neena-lab-section nc-lab-active-pipeline">
+                                <h4><i class="fa-solid fa-diagram-project"></i> Active capsules</h4>
+                                <div id="cockpit-pipeline-list" class="cockpit-pipeline-list">
+                                    <p class="empty-state">No broadcast capsules yet.</p>
+                                </div>
+                            </div>
+
+                            <div class="neena-lab-section neena-lab-work-section">
+                                <div class="card-header-actions lab-toolbar">
+                                    <h4><i class="fa-solid fa-folder-open"></i> Mission folders</h4>
+                                    <div class="lab-toolbar-actions">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="labSelectAll(true)">Select all</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="labSelectAll(false)">Clear</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="labDeleteSelected()" title="Dismiss / archive selected">
+                                            <i class="fa-solid fa-trash"></i> Delete selected
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="fetchNeenaLabData(true); fetchCockpitData();">
+                                            <i class="fa-solid fa-arrows-rotate"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="neena-lab-broadcast-readiness" class="lab-item-meta nc-lab-readiness"></div>
+                                <div id="neena-lab-day-folders" class="nc-lab-missions">
+                                    <p class="empty-state">Loading day folders…</p>
+                                </div>
+                                <!-- Legacy / optional status hooks (hidden — IDs preserved for JS) -->
+                                <div class="hidden" aria-hidden="true">
+                                    <div id="neena-lab-script-drafts"></div>
+                                    <div id="neena-lab-approval-queue"></div>
+                                    <div id="neena-lab-playout-ready"></div>
+                                    <div id="neena-lab-broadcast-capsules"></div>
+                                    <div id="neena-lab-voice-assets"></div>
+                                    <div id="neena-lab-schedule"></div>
+                                    <div id="neena-lab-source-tools"></div>
+                                    <div id="neena-lab-activity"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Tab 3: System Monitor — station operations telemetry -->
+                <section class="screen-panel" id="screen-monitor">
+                    <div class="monitor-dashboard-grid nc-monitor-stage">
+                        <div class="nc-hud-module telemetry-card">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-microchip"></i> Local Telemetry</h3>
+                                <span class="badge badge-neutral" id="telemetry-vm-mode">Checking…</span>
+                            </div>
+                            <p class="nc-truth-note">Local process metrics only. VM remote check is separate when available.</p>
+
+                            <div class="gauge-display-container nc-gauge-row">
+                                <div class="gauge-box">
+                                    <div class="circular-progress" id="cpu-gauge" style="background: radial-gradient(closest-side, #080c14 79%, transparent 80% 100%), conic-gradient(var(--cyan) 0%, var(--bg-card-border) 0%)">
+                                        <span class="value" id="cpu-gauge-value">0%</span>
+                                    </div>
+                                    <label id="cpu-gauge-label">Local CPU</label>
+                                </div>
+                                <div class="gauge-box">
+                                    <div class="circular-progress" id="ram-gauge" style="background: radial-gradient(closest-side, #080c14 79%, transparent 80% 100%), conic-gradient(var(--cyan) 0%, var(--bg-card-border) 0%)">
+                                        <span class="value" id="ram-gauge-value">0%</span>
+                                    </div>
+                                    <label id="ram-gauge-label">Local RAM</label>
+                                </div>
+                            </div>
+
+                            <div class="telemetry-info-list nc-telemetry-rows">
+                                <div class="telemetry-row">
+                                    <span id="telemetry-status-label">Runtime</span>
+                                    <strong id="telemetry-vm-status" class="text-muted">Not checked</strong>
+                                </div>
+                                <div class="telemetry-row">
+                                    <span id="telemetry-uptime-label">Uptime</span>
+                                    <strong id="telemetry-uptime">Not checked</strong>
+                                </div>
+                                <div class="telemetry-row">
+                                    <span id="telemetry-public-ip-label">Target</span>
+                                    <strong id="telemetry-public-ip">Not checked</strong>
+                                </div>
+                                <div class="telemetry-row">
+                                    <span>Radio Stream</span>
+                                    <span class="badge badge-neutral" id="telemetry-azuracast-status">Not checked</span>
+                                </div>
+                                <div class="telemetry-row">
+                                    <span>Playlist Mode</span>
+                                    <span class="badge badge-neutral" id="telemetry-autopilot-status">Not checked</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="nc-hud-module streaming-card">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-radio"></i> Stream Monitor</h3>
+                                <div class="broadcast-ping" aria-hidden="true">
+                                    <span class="ping-wave"></span>
+                                    <span class="ping-dot"></span>
+                                </div>
+                            </div>
+
+                            <div class="stream-player-container nc-stream-hud">
+                                <div class="vinyl-record-widget nc-stream-core" id="vinyl-disc">
+                                    <i class="fa-solid fa-tower-broadcast"></i>
+                                </div>
+                                <div class="now-playing-metadata">
+                                    <h4 id="player-track-title">Loading track info...</h4>
+                                    <span id="player-track-artist">Loading artist...</span>
+                                </div>
+                                <div class="player-controls">
+                                    <audio id="dashboard-stream-player" src="" preload="none"></audio>
+                                    <button class="btn-play-toggle" id="player-play-btn" onclick="toggleDashboardAudio()">
+                                        <i class="fa-solid fa-play"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="activities-logs-panel nc-event-feed">
+                                <h4><i class="fa-solid fa-satellite-dish"></i> Command Event Feed</h4>
+                                <div class="logs-scroller" id="activities-scroller-container">
+                                    <p class="empty-state">No activities logged yet.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="nc-hud-module monitor-station-card">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-gauge-high"></i> Station Ops</h3>
+                            </div>
+                            <div class="cockpit-side-column cc-details-inner nc-ops-grid">
+                                <div class="cockpit-readiness-card nc-ops-module">
+                                    <h4>Broadcast Readiness</h4>
+                                    <div class="readiness-grid" id="cockpit-readiness-grid">
+                                        <div class="readiness-row"><span>Brain</span><strong id="ready-brain">—</strong></div>
+                                        <div class="readiness-row"><span>TTS</span><strong id="ready-tts">—</strong></div>
+                                        <div class="readiness-row"><span>AzuraCast</span><strong id="ready-azura">—</strong></div>
+                                        <div class="readiness-row"><span>Stream</span><strong id="ready-stream">—</strong></div>
+                                        <div class="readiness-row"><span>Last Verified</span><strong id="ready-verified-capsule">—</strong></div>
+                                        <div class="readiness-blocker" id="ready-blocker"></div>
+                                    </div>
+                                </div>
+                                <div class="cockpit-task-card nc-ops-module">
+                                    <h4><i class="fa-solid fa-list-check"></i> Live Task Feed</h4>
+                                    <div class="cockpit-task-feed" id="cockpit-task-feed">
+                                        <div class="task-item task-info"><span class="task-time">—</span> Command Center ready.</div>
+                                    </div>
+                                </div>
+                                <div class="cc-quick-actions nc-ops-actions">
+                                    <button type="button" class="cockpit-pill" onclick="runLiveWhatNow()">What Now?</button>
+                                    <button type="button" class="cockpit-pill" onclick="runCockpitAction('station_status')">Status</button>
+                                    <button type="button" class="cockpit-pill" onclick="runCockpitAction('diagnostics_fast')">Diagnostics</button>
+                                    <button type="button" class="cockpit-pill" onclick="runCockpitAction('verify_latest_stream')">Verify Stream</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab: Settings — grouped control center -->
+                <section class="screen-panel" id="screen-settings">
+                    <div class="settings-dashboard-layout nc-settings-stage">
+                        <div class="nc-hud-module whatsapp-linker-card settings-gateway-card nc-settings-group" data-group="gateway">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-brands fa-whatsapp"></i> Gateway / WhatsApp</h3>
+                                <span class="badge badge-neutral" id="whatsapp-linker-status-badge">Checking…</span>
+                            </div>
+                            <div class="whatsapp-sync-content">
+                                <div class="qr-code-wrapper">
+                                    <div id="whatsapp-qr-spinner" class="qr-spinner">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        <p>Checking WhatsApp Gateway connection...</p>
+                                    </div>
+                                    <div id="whatsapp-qr-container" class="qr-image-box hidden">
+                                        <img id="whatsapp-qr-img" src="" alt="Scan QR Code to login">
+                                    </div>
+                                    <div id="whatsapp-connected-message" class="qr-connected-box hidden">
+                                        <i class="fa-solid fa-circle-check text-success"></i>
+                                        <h3>WhatsApp Link Active</h3>
+                                        <p>Gateway is logged in and Neena is routing messages.</p>
+                                        <span id="whatsapp-linked-phone" class="badge">Linked phone: Loading...</span>
+                                    </div>
+                                </div>
+                                <div class="whatsapp-linker-instructions">
+                                    <h4>How to connect</h4>
+                                    <ol>
+                                        <li>Open WhatsApp on your phone.</li>
+                                        <li>Go to Linked Devices and tap Link a Device.</li>
+                                        <li>Scan the QR code shown here.</li>
+                                        <li>Once synced, Neena will handle client and owner WhatsApp messages.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="nc-hud-module api-settings-card nc-settings-group" data-group="api">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-key"></i> API Keys</h3>
+                            </div>
+                            <div class="form-sci-group">
+                                <label for="setting-gemini-key">GOOGLE GEMINI API KEY</label>
+                                <input type="password" id="setting-gemini-key" placeholder="Enter Gemini key" class="input-sci" autocomplete="off">
+                                <small>Used for Neena's operational brain. Value is never shown after save.</small>
+                            </div>
+                            <div class="form-sci-group">
+                                <label for="setting-elevenlabs-key">ELEVENLABS API KEY</label>
+                                <input type="password" id="setting-elevenlabs-key" placeholder="Enter ElevenLabs API Key" class="input-sci" autocomplete="off">
+                                <small>Used to synthesize broadcast audio. Value is never shown after save.</small>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveStationAPIKeys()">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Credentials
+                            </button>
+                        </div>
+
+                        <div class="nc-hud-module nc-settings-group" data-group="voice">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-waveform-lines"></i> Voice Settings</h3>
+                            </div>
+                            <div class="form-sci-group">
+                                <label class="cockpit-speak-toggle nc-check-row">
+                                    <input type="checkbox" id="setting-follow-up-listen" checked>
+                                    Enable Follow-up Listening
+                                </label>
+                                <small>Automatically starts the microphone for 10 seconds when Neena asks a question.</small>
+                            </div>
+                            <div class="form-sci-group">
+                                <label for="voice-provider-select">Voice Provider Mode</label>
+                                <select id="voice-provider-select" onchange="setVoiceProviderMode(this.value)" class="input-sci">
+                                    <option value="auto">Auto (Browser Only by default)</option>
+                                    <option value="browser">Browser Only</option>
+                                    <option value="backend">Backend Only</option>
+                                </select>
+                                <small>Browser speech synthesis vs backend ElevenLabs queue.</small>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-test-voice" onclick="testOwnerVoice()">Test Voice</button>
+                        </div>
+
+                        <div class="nc-hud-module nc-settings-group" data-group="flags">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-sliders"></i> Model / Agent Flags</h3>
+                            </div>
+                            <p class="section-desc-para">Runtime kill switches (Redis override). Env default remains when override cleared.</p>
+                            <div id="neena-agent-flags-list" class="neena-agent-flags-list">
+                                <p class="empty-state">Loading flags…</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="fetchNeenaAgentFlags()">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh Flags
+                            </button>
+                        </div>
+
+                        <div class="nc-hud-module market-prices-card nc-settings-group" data-group="market">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-chart-line"></i> Market Rates (Orai Region)</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="fetchMarketRatesList()">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Refresh Rates
+                                </button>
+                            </div>
+                            <p class="section-desc-para">Update regional rates. Syncs with the listener app and Neena broadcast prompts.</p>
+                            <div class="market-rates-editor-grid" id="market-rates-items-container">
+                                <p class="empty-state">Loading market rates...</p>
+                            </div>
+                        </div>
+
+                        <div class="nc-hud-module nc-settings-group nc-danger-zone" data-group="danger">
+                            <div class="card-header-actions nc-module-head">
+                                <h3><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
+                            </div>
+                            <p class="section-desc-para">Service actions that can interrupt live routing. Use only when needed.</p>
+                            <div class="linker-actions">
+                                <button class="btn btn-danger-ghost" onclick="triggerRestartWhatsAppGateway()">
+                                    <i class="fa-solid fa-power-off"></i> Reboot Gateway Service
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- Command drawer: Command Neena Console (IDs preserved) -->
+    <div class="cc-command-drawer" id="cc-command-drawer" hidden>
+        <div class="cc-command-drawer-backdrop" onclick="closeCommandDrawer()" aria-hidden="true"></div>
+        <div class="cc-command-drawer-panel nc-console-panel" role="dialog" aria-modal="true" aria-labelledby="cc-drawer-title">
+            <div class="cc-command-drawer-head nc-console-head">
+                <div class="nc-console-title-wrap">
+                    <span class="nc-console-eyebrow">Console</span>
+                    <h2 id="cc-drawer-title"><i class="fa-solid fa-terminal"></i> Command Neena</h2>
+                </div>
+                <div class="cc-command-drawer-actions">
+                    <button type="button" class="btn btn-secondary btn-sm cc-header-voice-toggle" id="cc-header-voice-toggle" onclick="toggleNeenaVoicePad()" title="Show / hide voice pad">
+                        Voice pad
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="refreshOwnerWorkingContext()" title="Refresh context">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeCommandDrawer()" aria-label="Close drawer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="cc-command-drawer-body neena-chat-grid neena-voice-pad-collapsed" id="cc-drawer-body">
+                <div class="cockpit-core nc-drawer-voice neena-voice-rail" id="neena-voice-rail">
+                    <div class="neena-orb-wrap" id="neena-orb-wrap">
+                        <div class="neena-orb-ring ring-1"></div>
+                        <div class="neena-orb-ring ring-2"></div>
+                        <div class="neena-orb-core">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                        </div>
+                        <div class="neena-waveform" id="neena-waveform" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <h3 class="neena-state-title" id="neena-state-title">Neena Online</h3>
+                    <p class="neena-heard-line" id="cockpit-heard-line">Tap the mic and speak a command.</p>
+                    <p class="voice-fallback-note hidden" id="voice-fallback-note">
+                        Voice input is unavailable in this browser. Use the chat thread instead.
+                    </p>
+                    <button type="button" class="cockpit-mic-btn" id="cockpit-mic-btn" onclick="toggleVoiceListening()">
+                        <i class="fa-solid fa-microphone" id="cockpit-mic-icon"></i>
+                        <span id="cockpit-mic-label">Tap to Talk</span>
+                    </button>
+                    <div class="cockpit-voice-reply visually-hidden" id="cockpit-voice-reply" aria-hidden="true"></div>
+                    <div class="cockpit-voice-gate" id="cockpit-voice-gate">
+                        <span class="voice-status-badge voice-status-checking" id="voice-status-badge" title="Voice status">Voice: checking…</span>
+                    </div>
+                    <div class="cockpit-manual-voice-player hidden" id="cockpit-manual-voice-player"></div>
+                    <p class="voice-fail-banner hidden" id="voice-fail-banner">Browser voice unavailable. Text replies are still active.</p>
+                </div>
+
+                <div class="nc-drawer-thread cockpit-agent-thread" id="cockpit-agent-thread">
+                    <div class="agent-context-strip" id="agent-context-strip">
+                        <span class="agent-ctx-item" id="agent-ctx-last">Last: —</span>
+                        <span class="agent-pending-chip hidden" id="agent-pending-chip">Pending: —</span>
+                    </div>
+                    <div class="chat-logs-area cockpit-agent-scroll" id="console-chat-messages">
+                        <p class="nc-console-empty empty-state">Command channel ready. Ask Neena about station status, scripts, or approvals.</p>
+                    </div>
+                    <div class="nc-console-compose">
+                        <div class="chat-model-selector-bar">
+                            <label for="chat-model-selector">Model</label>
+                            <select id="chat-model-selector">
+                                <option value="auto" selected>Auto</option>
+                                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                                <option value="local-control-only">Local Control Only</option>
+                            </select>
+                        </div>
+                        <div class="chat-input-bar nc-console-input-strip">
+                            <input type="text" id="owner-console-input" placeholder="Message Neena…" onkeydown="handleConsoleInputKey(event)">
+                            <button class="btn btn-primary" onclick="submitOwnerConsoleMessage()" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Script / file viewer modal (replaces Advanced drawer) -->
+    <div id="lab-script-modal" class="lab-script-modal hidden" role="dialog" aria-modal="true" aria-labelledby="lab-script-modal-title">
+        <div class="lab-script-modal-backdrop" onclick="closeLabScriptModal()"></div>
+        <div class="lab-script-modal-panel glass-card">
+            <div class="card-header-actions">
+                <h3 id="lab-script-modal-title"><i class="fa-solid fa-file-lines"></i> Script</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeLabScriptModal()" title="Close">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
+            </div>
+            <pre id="lab-script-modal-body" class="lab-script-modal-body"></pre>
+        </div>
+    </div>
+    
+    <!-- Scripts (M6 Phase 4c: app.js split into cohesive modules sharing one
+         global scope; load order = shared config first, bootstrap last) -->
+    <script src="js/core.js?v=gate9s"></script>
+    <script src="js/voice.js?v=gate9s"></script>
+    <script src="js/admin.js?v=gate9s"></script>
+    <script src="js/panels.js?v=gate9s"></script>
+    <script src="js/chat.js?v=gate9s"></script>
+    <script src="js/capsules.js?v=gate9s"></script>
+    <script src="js/orb.js?v=gate9s"></script>
+    <script src="js/cockpit.js?v=gate9s"></script>
+    <script src="js/voice_call.js?v=gate9s-v2"></script>
+    <!-- About / Build info modal (diagnostic + version proof) -->
+    <div class="cc-about-overlay" id="cc-about-overlay" hidden onclick="if(event.target===this)closeAboutModal()">
+        <div class="cc-about-modal" role="dialog" aria-modal="true" aria-labelledby="cc-about-title">
+            <div class="cc-about-head">
+                <h2 id="cc-about-title"><i class="fa-solid fa-circle-info"></i> About this build</h2>
+                <button type="button" class="cc-about-close" onclick="closeAboutModal()" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="cc-about-body">
+                <dl class="cc-about-grid" id="cc-about-grid">
+                    <dt>App</dt><dd id="ab-app_name">—</dd>
+                    <dt>Build</dt><dd id="ab-build_name">—</dd>
+                    <dt>Git commit</dt><dd id="ab-git_commit">—</dd>
+                    <dt>Build time (UTC)</dt><dd id="ab-build_time_utc">—</dd>
+                    <dt>Deploy time (UTC)</dt><dd id="ab-deploy_time_utc">—</dd>
+                    <dt>Served from</dt><dd id="ab-served_from">—</dd>
+                    <dt>Backend</dt><dd id="ab-backend_version">—</dd>
+                    <dt>Frontend asset ver</dt><dd id="ab-frontend_asset_version">—</dd>
+                    <dt>index data-build</dt><dd id="ab-data_build">—</dd>
+                    <dt>Current URL</dt><dd id="ab-current_url">—</dd>
+                    <dt>Browser time</dt><dd id="ab-browser_time">—</dd>
+                </dl>
+                <p class="cc-about-note" id="cc-about-note"></p>
+            </div>
+            <div class="cc-about-foot">
+                <a class="btn btn-secondary btn-sm" id="cc-about-raw-link" href="/__cc-version.json" target="_blank" rel="noopener">Open /__cc-version.json</a>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="refreshAboutModal()">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=gate9s"></script>
+</body>
+</html>
