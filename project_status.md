@@ -4,15 +4,15 @@ Business Operating System (B.O.S.)
 
 # Current Stage
 
-Architecture Migration — Core v1.0 FROZEN
+Architecture Migration — Post Core Freeze
 
 # Current Sprint
 
-Sprint-9.5 (Core Freeze Closure & Future Extension Registry)
+Sprint-10 (Provider Framework)
 
 # Current Milestone
 
-Sprint-9.5 Completed (Core Freeze Declaration `CORE_FREEZE.md`, Future Extension Registry `docs/CORE_FUTURE_EXTENSIONS.md`, ADR-004 `docs/adr/ADR-004-Core-Freeze-v1.md`, Module Registry Updated `MODULE_REGISTRY.md`)
+Sprint-10 Completed (Base Provider Contract `backend/providers/base/`, Manifest Parser `provider.json`/`yaml`, Runtime Provider Registry `RuntimeProviderRegistry`, Provider Loader `ProviderLoader`, Dynamic Provider Resolver `ProviderResolver`, Health & Diagnostics `ProviderHealth`, Lifecycle Events `ProviderEventPublisher`, Reference Providers `LocalEchoProvider` & `MemoryEchoProvider`, ADR-005)
 
 # Current Priority
 
@@ -82,14 +82,18 @@ Legacy Neena project is the migration source.
 - TASK-046: Transaction Context (`backend/core/execution/transaction.py` with `ExecutionTransaction`)
 - TASK-047: Execution Lifecycle Events (`backend/core/execution/events.py` with `ExecutionEventPublisher`)
 - TASK-048: Reference Echo Command (`backend/core/execution/reference/echo_command.py` with `EchoCommand`)
-- TASK-059: Future Extensions Registry (`docs/CORE_FUTURE_EXTENSIONS.md`)
-- TASK-060: Core Freeze Declaration (`CORE_FREEZE.md`)
-- TASK-061: ADR-004 Core Freeze (`docs/adr/ADR-004-Core-Freeze-v1.md`)
-- TASK-062: Project Status & Registry Freeze Closure (`project_status.md`, `MODULE_REGISTRY.md`, `project_history.md`)
+- TASK-050: Base Provider Contract (`backend/providers/base/` with `BaseProvider`, `ProviderMetadata`, `ProviderContext`, `ProviderState`, `ProviderLifecycle`, `ProviderScope`)
+- TASK-051: Provider Manifest Parser (`backend/providers/base/manifest.py` with `ProviderManifest`)
+- TASK-052: Runtime Provider Registry (`backend/providers/registry.py` with `RuntimeProviderRegistry`)
+- TASK-053: Provider Loader (`backend/providers/loader.py` with `ProviderLoader`)
+- TASK-054: Dynamic Provider Resolver (`backend/providers/resolver.py` with `ProviderResolver`)
+- TASK-055: Provider Health & Diagnostics (`backend/providers/health.py` with `ProviderHealth`, `ProviderHealthStatus`)
+- TASK-056: Provider Event Publisher (`backend/providers/events.py` with `ProviderEventPublisher`)
+- TASK-057: Reference Providers (`backend/providers/reference/` with `LocalEchoProvider`, `MemoryEchoProvider`)
 
 # In Progress
 
-- Provider Layer Preparation (Sprint-10: Gemini, GPT, Claude, Ollama, SQLite/Postgres, Local/S3 Storage)
+- Business Module Extraction (Sprint-11: Radio Module & CRM Module)
 
 # Blockers
 
@@ -97,9 +101,9 @@ None
 
 # Next Tasks
 
-1. Provider Layer Implementation (Sprint-10)
-2. Business Module Extraction (Radio Module, CRM Module)
-3. Generic Dashboard Refactoring
+1. Business Module Extraction (Sprint-11: Radio Module, CRM Module)
+2. Generic Dashboard Refactoring
+3. Real Infrastructure Providers (Gemini, SQLite/Postgres, OpenAI)
 4. Integration Tests
 
 # Current Goal

@@ -133,7 +133,23 @@ Core Freeze Closure & Future Extension Registry (Sprint-9.5 Completed)
 - **Core Freeze Declaration**: Officially locked B.O.S. Core v1.0 in [`CORE_FREEZE.md`](file:///c:/Projects/b.o.s/CORE_FREEZE.md) establishing clear allowed and forbidden change policies.
 - **Future Extension Registry**: Documented postponed architectural concepts (Durable Workflows, Execution Persistence, Memory v2 Vector Store, Multi-Tenant Scoping, Saga Compensation, Workflow Resume) in [`docs/CORE_FUTURE_EXTENSIONS.md`](file:///c:/Projects/b.o.s/docs/CORE_FUTURE_EXTENSIONS.md).
 - **ADR Documented**: Created [`ADR-004`](file:///c:/Projects/b.o.s/docs/adr/ADR-004-Core-Freeze-v1.md) ratifying permanent B.O.S. Core v1.0 architectural freeze.
-- **Registry & Status Updated**: Updated [`MODULE_REGISTRY.md`](file:///c:/Projects/b.o.s/MODULE_REGISTRY.md), [`project_status.md`](file:///c:/Projects/b.o.s/project_status.md), and [`project_history.md`](file:///c:/Projects/b.o.s/project_history.md).
+
+---
+
+# Sprint-10 Provider Framework Milestone
+
+### Milestone
+Provider Framework Architecture (Sprint-10 Completed)
+
+### Accomplishments
+- **Base Provider Contract**: Implemented [`BaseProvider`](file:///c:/Projects/b.o.s/backend/providers/base/base_provider.py), `ProviderMetadata`, `ProviderContext`, `ProviderState`, `ProviderLifecycle`, and `ProviderScope` in `backend/providers/base/`.
+- **Provider Manifest Parser**: Implemented [`ProviderManifest`](file:///c:/Projects/b.o.s/backend/providers/base/manifest.py) supporting `provider.json` and `provider.yaml` parsing.
+- **Runtime Provider Registry**: Implemented [`RuntimeProviderRegistry`](file:///c:/Projects/b.o.s/backend/providers/registry.py) supporting registration, priority sorting, capability indexing, enabling/disabling, replacement, and unregistration.
+- **Provider Loader & Resolver**: Implemented [`ProviderLoader`](file:///c:/Projects/b.o.s/backend/providers/loader.py) and [`ProviderResolver`](file:///c:/Projects/b.o.s/backend/providers/resolver.py) for dynamic capability-based provider resolution based on priority and health.
+- **Provider Health & Diagnostics**: Implemented [`ProviderHealth`](file:///c:/Projects/b.o.s/backend/providers/health.py) for liveness, readiness, degraded, and diagnostic reporting.
+- **Provider Events**: Integrated [`ProviderEventPublisher`](file:///c:/Projects/b.o.s/backend/providers/events.py) publishing `ProviderRegistered`, `ProviderLoaded`, `ProviderEnabled`, `ProviderDisabled`, `ProviderHealthChanged`, and `ProviderRemoved` to `RuntimeEventBus`.
+- **Reference Providers**: Built [`LocalEchoProvider`](file:///c:/Projects/b.o.s/backend/providers/reference/local_echo_provider.py) (priority 10) and [`MemoryEchoProvider`](file:///c:/Projects/b.o.s/backend/providers/reference/memory_echo_provider.py) (priority 20).
+- **ADR Documented**: Created [`ADR-005`](file:///c:/Projects/b.o.s/docs/adr/ADR-005-Provider-Framework-Architecture.md) defining the Provider Framework architecture.
 
 ---
 
@@ -151,6 +167,7 @@ Core Freeze Closure & Future Extension Registry (Sprint-9.5 Completed)
 - **Generic Service Layer & DI**: All components discover and resolve services via `ServiceDiscovery` and `ServiceContainer`.
 - **Command Bus & Pipeline**: Capabilities and modules execute through `CommandBus` and 6-stage `ExecutionPipeline`.
 - **Core v1.0 Freeze**: B.O.S. Core Kernel, Runtime Lifecycle, Graph Layer, Service Layer, and Execution Pipeline are permanently frozen.
+- **Provider Framework**: Infrastructure providers plug into `backend/providers/` without modifying the frozen Core.
 
 ---
 

@@ -77,7 +77,21 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 6. Legacy Modules (Read-Only Knowledge Sources)
+# 6. Provider Framework (Infrastructure Integration Layer)
+
+| Module Name | Layer | Purpose | Dependencies | Consumers | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `providers/base` | Provider Layer | Base Provider contract (`BaseProvider`, `ProviderMetadata`, `ProviderContext`, `ProviderState`, `ProviderLifecycle`, `ProviderScope`, `ProviderManifest`) | None | Technology Providers | Stable |
+| `providers/registry` | Provider Layer | Dynamic runtime provider registry, priority resolution & capability indexing | BaseProvider, ProviderEventPublisher | ProviderResolver | Stable |
+| `providers/loader` | Provider Layer | Manifest validation (`provider.json`/`yaml`), instantiation & context injection | ProviderManifest, RuntimeProviderRegistry | Platform Startup | Stable |
+| `providers/resolver` | Provider Layer | Dynamic provider resolution based on capability, health, and priority | RuntimeProviderRegistry, ProviderHealth | AdapterRouter, Capabilities | Stable |
+| `providers/health` | Provider Layer | Liveness, readiness, degraded, and diagnostic status reporting | BaseProvider | ProviderResolver | Stable |
+| `providers/events` | Provider Layer | Event publisher for provider lifecycle state transitions | RuntimeEventBus | ProviderRegistry | Stable |
+| `providers/reference` | Reference Providers | Reference dummy providers (`LocalEchoProvider`, `MemoryEchoProvider`) | BaseProvider | ProviderResolver | Stable |
+
+---
+
+# 7. Legacy Modules (Read-Only Knowledge Sources)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -89,7 +103,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 7. Business Modules (Future / Planned)
+# 8. Business Modules (Future / Planned)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
