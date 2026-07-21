@@ -4,15 +4,15 @@ Business Operating System (B.O.S.)
 
 # Current Stage
 
-Architecture Migration
+Architecture Migration — Core v1.0 FROZEN
 
 # Current Sprint
 
-Sprint-9 (Execution Pipeline & Command Bus)
+Sprint-9.5 (Core Freeze Closure & Future Extension Registry)
 
 # Current Milestone
 
-Sprint-9 Completed (Command Contract, Command Bus, 6-Stage Execution Pipeline, Middleware Chain, Transaction Context, Execution Lifecycle Events, Reference EchoCommand, ADR-003)
+Sprint-9.5 Completed (Core Freeze Declaration `CORE_FREEZE.md`, Future Extension Registry `docs/CORE_FUTURE_EXTENSIONS.md`, ADR-004 `docs/adr/ADR-004-Core-Freeze-v1.md`, Module Registry Updated `MODULE_REGISTRY.md`)
 
 # Current Priority
 
@@ -20,7 +20,7 @@ Transforming Neena AI Radio Manager into a generic Business Operating System
 
 # Repository Status
 
-New BOS repository initialized.  
+New BOS repository initialized & connected to GitHub (`https://github.com/rajavikramaditya/B.O.S.`).  
 Legacy Neena project is the migration source.
 
 # Completed
@@ -82,10 +82,14 @@ Legacy Neena project is the migration source.
 - TASK-046: Transaction Context (`backend/core/execution/transaction.py` with `ExecutionTransaction`)
 - TASK-047: Execution Lifecycle Events (`backend/core/execution/events.py` with `ExecutionEventPublisher`)
 - TASK-048: Reference Echo Command (`backend/core/execution/reference/echo_command.py` with `EchoCommand`)
+- TASK-059: Future Extensions Registry (`docs/CORE_FUTURE_EXTENSIONS.md`)
+- TASK-060: Core Freeze Declaration (`CORE_FREEZE.md`)
+- TASK-061: ADR-004 Core Freeze (`docs/adr/ADR-004-Core-Freeze-v1.md`)
+- TASK-062: Project Status & Registry Freeze Closure (`project_status.md`, `MODULE_REGISTRY.md`, `project_history.md`)
 
 # In Progress
 
-- Architecture Review (Awaiting Architecture Review after Sprint-9 completion)
+- Provider Layer Preparation (Sprint-10: Gemini, GPT, Claude, Ollama, SQLite/Postgres, Local/S3 Storage)
 
 # Blockers
 
@@ -93,7 +97,7 @@ None
 
 # Next Tasks
 
-1. Provider Layer (Sprint-10: Gemini, GPT, Claude, Ollama, SQLite/Postgres, Local/S3 Storage)
+1. Provider Layer Implementation (Sprint-10)
 2. Business Module Extraction (Radio Module, CRM Module)
 3. Generic Dashboard Refactoring
 4. Integration Tests

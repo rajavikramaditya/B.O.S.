@@ -124,6 +124,19 @@ Execution Pipeline & Command Bus (Sprint-9 Completed)
 
 ---
 
+# Sprint-9.5 Core Freeze Closure Milestone
+
+### Milestone
+Core Freeze Closure & Future Extension Registry (Sprint-9.5 Completed)
+
+### Accomplishments
+- **Core Freeze Declaration**: Officially locked B.O.S. Core v1.0 in [`CORE_FREEZE.md`](file:///c:/Projects/b.o.s/CORE_FREEZE.md) establishing clear allowed and forbidden change policies.
+- **Future Extension Registry**: Documented postponed architectural concepts (Durable Workflows, Execution Persistence, Memory v2 Vector Store, Multi-Tenant Scoping, Saga Compensation, Workflow Resume) in [`docs/CORE_FUTURE_EXTENSIONS.md`](file:///c:/Projects/b.o.s/docs/CORE_FUTURE_EXTENSIONS.md).
+- **ADR Documented**: Created [`ADR-004`](file:///c:/Projects/b.o.s/docs/adr/ADR-004-Core-Freeze-v1.md) ratifying permanent B.O.S. Core v1.0 architectural freeze.
+- **Registry & Status Updated**: Updated [`MODULE_REGISTRY.md`](file:///c:/Projects/b.o.s/MODULE_REGISTRY.md), [`project_status.md`](file:///c:/Projects/b.o.s/project_status.md), and [`project_history.md`](file:///c:/Projects/b.o.s/project_history.md).
+
+---
+
 # Major Architecture Decisions
 
 - **Runtime owns execution**: AI reasoning generates plans; Runtime validates, authorizes, executes, and verifies every action.
@@ -137,6 +150,7 @@ Execution Pipeline & Command Bus (Sprint-9 Completed)
 - **Installable Modules**: Business verticals plug into the platform via `BaseModule` contracts without kernel modification.
 - **Generic Service Layer & DI**: All components discover and resolve services via `ServiceDiscovery` and `ServiceContainer`.
 - **Command Bus & Pipeline**: Capabilities and modules execute through `CommandBus` and 6-stage `ExecutionPipeline`.
+- **Core v1.0 Freeze**: B.O.S. Core Kernel, Runtime Lifecycle, Graph Layer, Service Layer, and Execution Pipeline are permanently frozen.
 
 ---
 

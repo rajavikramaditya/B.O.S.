@@ -3,9 +3,12 @@
 ## Overview
 This document is the single source of truth for all software modules, packages, engines, and layers within the Business Operating System (B.O.S.).
 
+> [!IMPORTANT]
+> **B.O.S. Core v1.0 is FROZEN.** Sections 1, 2, 3, 4, and 5 represent the locked Core platform core.
+
 ---
 
-# 1. BOS Core & Cognitive Kernel
+# 1. BOS Core & Cognitive Kernel (FROZEN)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -23,7 +26,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 2. Execution Pipeline & Command Bus
+# 2. Execution Pipeline & Command Bus (FROZEN)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -37,7 +40,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 3. Generic Service Layer & Dependency Injection
+# 3. Generic Service Layer & Dependency Injection (FROZEN)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -51,7 +54,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 4. Module Extension Framework
+# 4. Module Extension Framework (FROZEN)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -64,7 +67,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 5. Adapters & Integrations
+# 5. Adapters & Integrations (FROZEN)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
