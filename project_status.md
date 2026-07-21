@@ -8,11 +8,11 @@ Architecture Migration — Post Core Freeze
 
 # Current Sprint
 
-Sprint-10 (Provider Framework)
+Sprint-11 (Configuration, Secrets & Environment Framework)
 
 # Current Milestone
 
-Sprint-10 Completed (Base Provider Contract `backend/providers/base/`, Manifest Parser `provider.json`/`yaml`, Runtime Provider Registry `RuntimeProviderRegistry`, Provider Loader `ProviderLoader`, Dynamic Provider Resolver `ProviderResolver`, Health & Diagnostics `ProviderHealth`, Lifecycle Events `ProviderEventPublisher`, Reference Providers `LocalEchoProvider` & `MemoryEchoProvider`, ADR-005)
+Sprint-11 Completed (Base Configuration Contract `backend/config/base/`, Runtime Configuration Registry `RuntimeConfigurationRegistry`, Loader `ConfigurationLoader`, Secrets Framework `SecretManager`, `SecretResolver`, `SecretReference`, Feature Flag Manager `FeatureFlagManager`, 6-Tier Resolver `ConfigurationResolver`, Reference Provider Configurations `GeminiProviderConfig`, `OpenAIProviderConfig`, `WhatsAppProviderConfig`, ADR-006)
 
 # Current Priority
 
@@ -90,10 +90,17 @@ Legacy Neena project is the migration source.
 - TASK-055: Provider Health & Diagnostics (`backend/providers/health.py` with `ProviderHealth`, `ProviderHealthStatus`)
 - TASK-056: Provider Event Publisher (`backend/providers/events.py` with `ProviderEventPublisher`)
 - TASK-057: Reference Providers (`backend/providers/reference/` with `LocalEchoProvider`, `MemoryEchoProvider`)
+- TASK-059: Base Configuration Contract (`backend/config/base/` with `BaseConfiguration`, `ConfigurationMetadata`, `ConfigurationContext`, `ConfigurationScope`, `ConfigurationSource`)
+- TASK-060: Runtime Configuration Registry (`backend/config/registry.py` with `RuntimeConfigurationRegistry`)
+- TASK-061: Configuration Loader (`backend/config/loader.py` with `ConfigurationLoader`)
+- TASK-062: Secrets Framework (`backend/config/secrets/` with `SecretManager`, `SecretResolver`, `SecretReference`)
+- TASK-063: Feature Flag Manager (`backend/config/flags.py` with `FeatureFlagManager`)
+- TASK-064: 6-Tier Configuration Resolver (`backend/config/resolver.py` with `ConfigurationResolver`)
+- TASK-065: Reference Configurations (`backend/config/reference/` with `GeminiProviderConfig`, `OpenAIProviderConfig`, `WhatsAppProviderConfig`)
 
 # In Progress
 
-- Business Module Extraction (Sprint-11: Radio Module & CRM Module)
+- Business Module Extraction (Sprint-12: Radio Module & CRM Module)
 
 # Blockers
 
@@ -101,7 +108,7 @@ None
 
 # Next Tasks
 
-1. Business Module Extraction (Sprint-11: Radio Module, CRM Module)
+1. Business Module Extraction (Sprint-12: Radio Module, CRM Module)
 2. Generic Dashboard Refactoring
 3. Real Infrastructure Providers (Gemini, SQLite/Postgres, OpenAI)
 4. Integration Tests

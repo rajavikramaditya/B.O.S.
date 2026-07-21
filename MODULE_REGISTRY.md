@@ -91,7 +91,21 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 7. Legacy Modules (Read-Only Knowledge Sources)
+# 7. Configuration Framework (Environment, Secrets & Feature Flags)
+
+| Module Name | Layer | Purpose | Dependencies | Consumers | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `config/base` | Configuration Layer | Base Configuration contract (`BaseConfiguration`, `ConfigurationMetadata`, `ConfigurationContext`, `ConfigurationScope`, `ConfigurationSource`) | None | System Services | Stable |
+| `config/registry` | Configuration Layer | Central runtime configuration registry, scope keying & value overrides | BaseConfiguration | ConfigurationResolver | Stable |
+| `config/loader` | Configuration Layer | Normalized loader for `.env`, JSON, YAML, and OS environment variables | BaseConfiguration | RuntimeConfigurationRegistry | Stable |
+| `config/secrets` | Secrets Layer | Secure secret manager, resolver & reference masking (`SecretManager`, `SecretResolver`, `SecretReference`) | None | ProviderLoader, Resolver | Stable |
+| `config/flags` | Feature Flags | Feature flag manager for global, tenant-specific, and module-specific rollouts | None | System Modules | Stable |
+| `config/resolver` | Configuration Layer | 6-tier hierarchical lookup (`Runtime → Tenant → Module → Provider → Global → Default`) | RuntimeConfigurationRegistry, SecretManager | Platform Layers | Stable |
+| `config/reference` | Reference Configs | Reference provider configurations (`GeminiProviderConfig`, `OpenAIProviderConfig`, `WhatsAppProviderConfig`) | BaseConfiguration, SecretReference | Provider Framework | Stable |
+
+---
+
+# 8. Legacy Modules (Read-Only Knowledge Sources)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -103,7 +117,7 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 8. Business Modules (Future / Planned)
+# 9. Business Modules (Future / Planned)
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |

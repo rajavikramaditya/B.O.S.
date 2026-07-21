@@ -153,6 +153,23 @@ Provider Framework Architecture (Sprint-10 Completed)
 
 ---
 
+# Sprint-11 Configuration & Secrets Framework Milestone
+
+### Milestone
+Configuration, Secrets & Environment Framework (Sprint-11 Completed)
+
+### Accomplishments
+- **Base Configuration Contract**: Implemented [`BaseConfiguration`](file:///c:/Projects/b.o.s/backend/config/base/base_configuration.py), `ConfigurationMetadata`, `ConfigurationContext`, `ConfigurationScope`, and `ConfigurationSource` in `backend/config/base/`.
+- **Runtime Configuration Registry**: Implemented [`RuntimeConfigurationRegistry`](file:///c:/Projects/b.o.s/backend/config/registry.py) supporting configuration registration, scope keying, and value overrides.
+- **Configuration Loader**: Implemented [`ConfigurationLoader`](file:///c:/Projects/b.o.s/backend/config/loader.py) parsing `.env`, OS environment variables, JSON, and YAML into normalized configuration objects.
+- **Secrets Framework**: Implemented [`SecretManager`](file:///c:/Projects/b.o.s/backend/config/secrets/secret_manager.py), [`SecretResolver`](file:///c:/Projects/b.o.s/backend/config/secrets/secret_resolver.py), and [`SecretReference`](file:///c:/Projects/b.o.s/backend/config/secrets/secret_reference.py) guaranteeing secret value masking in logs (`***REDACTED***`) and runtime injection into providers.
+- **Feature Flag Manager**: Implemented [`FeatureFlagManager`](file:///c:/Projects/b.o.s/backend/config/flags.py) supporting global, tenant-specific, and module-specific feature rollouts.
+- **6-Tier Configuration Resolver**: Implemented [`ConfigurationResolver`](file:///c:/Projects/b.o.s/backend/config/resolver.py) enforcing `Runtime → Tenant → Module → Provider → Global → Default` precedence.
+- **Reference Provider Configs**: Built [`GeminiProviderConfig`](file:///c:/Projects/b.o.s/backend/config/reference/provider_configs.py), [`OpenAIProviderConfig`](file:///c:/Projects/b.o.s/backend/config/reference/provider_configs.py), and [`WhatsAppProviderConfig`](file:///c:/Projects/b.o.s/backend/config/reference/provider_configs.py).
+- **ADR Documented**: Created [`ADR-006`](file:///c:/Projects/b.o.s/docs/adr/ADR-006-Configuration-Framework.md) defining the Configuration & Secrets Framework architecture.
+
+---
+
 # Major Architecture Decisions
 
 - **Runtime owns execution**: AI reasoning generates plans; Runtime validates, authorizes, executes, and verifies every action.
@@ -168,6 +185,7 @@ Provider Framework Architecture (Sprint-10 Completed)
 - **Command Bus & Pipeline**: Capabilities and modules execute through `CommandBus` and 6-stage `ExecutionPipeline`.
 - **Core v1.0 Freeze**: B.O.S. Core Kernel, Runtime Lifecycle, Graph Layer, Service Layer, and Execution Pipeline are permanently frozen.
 - **Provider Framework**: Infrastructure providers plug into `backend/providers/` without modifying the frozen Core.
+- **Centralized Configuration & Secrets**: All `.env`, secret credentials, feature flags, and tenant overrides resolve via `ConfigurationResolver` and `SecretManager`.
 
 ---
 
