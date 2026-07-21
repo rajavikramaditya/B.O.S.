@@ -18,7 +18,7 @@ Every file in the repository (excluding `.git`, test caches, and the approved `L
 | **ACTIVE_MODULE** | 15 | Base module contracts and the reference `NotesModule` implementation. |
 | **ACTIVE_PROVIDER** | 17 | Base provider contracts and references (`LocalEchoProvider`, `MemoryEchoProvider`). |
 | **ACTIVE_RUNTIME** | 98 | Core execution and reasoning engine layers (under `runtime/`). |
-| **ACTIVE_DOCUMENT** | 25 | Active documentation, system specs, ADRs, and roadmap. |
+| **ACTIVE_DOCUMENT** | 24 | Active documentation, system specs, ADRs, and roadmap. |
 | **ACTIVE_TEST** | 1 | Suite of capability framework validation tests. |
 | **GENERATED** | 3 | Environment config files and automatically generated reports. |
 | **DEPRECATED** | 1 | Legacy compatibility base registry `legacy_base.py` required by Frozen Core. |
@@ -28,7 +28,8 @@ Every file in the repository (excluding `.git`, test caches, and the approved `L
 
 ## 2. Deleted Files
 
-No files were deleted in this sprint. Obsolete legacy files under `backend/services/` were permanently deleted in the preceding stabilization sprint.
+The following legacy files were deleted as their logic is retired and they are no longer referenced in the platform:
+- `docs/LEGACY_SERVICE_CLASSIFICATION.md` (Legacy service layer classification report, retired after services package deletion)
 
 ## 3. Moved & Archived Files
 
