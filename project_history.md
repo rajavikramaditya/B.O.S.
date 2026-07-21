@@ -186,6 +186,9 @@ Configuration, Secrets & Environment Framework (Sprint-11 Completed)
 - **Core v1.0 Freeze**: B.O.S. Core Kernel, Runtime Lifecycle, Graph Layer, Service Layer, and Execution Pipeline are permanently frozen.
 - **Provider Framework**: Infrastructure providers plug into `backend/providers/` without modifying the frozen Core.
 - **Centralized Configuration & Secrets**: All `.env`, secret credentials, feature flags, and tenant overrides resolve via `ConfigurationResolver` and `SecretManager`.
+- **Capability Framework**: Formal `BaseCapability`, `RuntimeCapabilityRegistry`, `CapabilityResolver`, `CapabilityPolicyManager`, `CapabilityEventPublisher` and 3 reference capabilities implemented. Legacy capabilities preserved alongside new framework via compatibility bridge.
+- **Legacy Service Classification**: Complete `docs/LEGACY_SERVICE_CLASSIFICATION.md` created — 100+ files in `backend/services/` classified into Generic Platform Capability / Business Module Logic / AI Manager Logic / Infrastructure Provider / Dead Legacy with migration sprint targets.
+- **Key Architecture Decision**: Two parallel capability systems (Legacy `CapabilityRegistry` + `UniversalCapabilityRegistry`) resolved using compatibility bridge — `importlib.util` direct file loading prevents Python `base/` package shadowing `base.py` from breaking Frozen Core consumers.
 
 ---
 

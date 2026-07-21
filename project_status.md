@@ -8,11 +8,11 @@ Architecture Migration — Post Core Freeze
 
 # Current Sprint
 
-Sprint-11 (Configuration, Secrets & Environment Framework)
+Sprint-12 (Capability Framework & Resolution Engine)
 
 # Current Milestone
 
-Sprint-11 Completed (Base Configuration Contract `backend/config/base/`, Runtime Configuration Registry `RuntimeConfigurationRegistry`, Loader `ConfigurationLoader`, Secrets Framework `SecretManager`, `SecretResolver`, `SecretReference`, Feature Flag Manager `FeatureFlagManager`, 6-Tier Resolver `ConfigurationResolver`, Reference Provider Configurations `GeminiProviderConfig`, `OpenAIProviderConfig`, `WhatsAppProviderConfig`, ADR-006)
+Sprint-12 Completed (Capability Base Contract `backend/capabilities/base/`, RuntimeCapabilityRegistry, CapabilityResolver, CapabilityPolicyManager, CapabilityEventPublisher, 3 Reference Capabilities, 41 tests, Legacy Service Classification `docs/LEGACY_SERVICE_CLASSIFICATION.md`, ADR-007)
 
 # Current Priority
 
@@ -97,10 +97,20 @@ Legacy Neena project is the migration source.
 - TASK-063: Feature Flag Manager (`backend/config/flags.py` with `FeatureFlagManager`)
 - TASK-064: 6-Tier Configuration Resolver (`backend/config/resolver.py` with `ConfigurationResolver`)
 - TASK-065: Reference Configurations (`backend/config/reference/` with `GeminiProviderConfig`, `OpenAIProviderConfig`, `WhatsAppProviderConfig`)
+- TASK-066: Legacy Service Classification Report (`docs/LEGACY_SERVICE_CLASSIFICATION.md` — official migration map for all `backend/services/` files, 100+ files classified)
+- TASK-067: Base Capability Contract (`backend/capabilities/base/` with `BaseCapability`, `CapabilityMetadata`, `CapabilityContext`, `CapabilityResult`, `CapabilityScope`, `CapabilityLifecycle`)
+- TASK-068: Capability Manifest Parser (`backend/capabilities/base/manifest.py` with `CapabilityManifest`)
+- TASK-069: Runtime Capability Registry (`backend/capabilities/registry.py` with `RuntimeCapabilityRegistry`, category index, version index, dependency validation)
+- TASK-070: Capability Resolver (`backend/capabilities/resolver.py` with `CapabilityResolver` — 4-step pipeline: resolve → validate action → validate policies → execute)
+- TASK-071: Capability Policy Manager (`backend/capabilities/policies.py` with `CapabilityPolicyManager` — allowed/denied providers, permissions, tenant restrictions, feature flags)
+- TASK-072: Capability Event Publisher (`backend/capabilities/events.py` with `CapabilityEventPublisher`, 5 event types, graceful EventBus degradation)
+- TASK-073: Reference Capabilities (`backend/capabilities/reference/` with `GenerateTextCapability`, `StoreDocumentCapability`, `SendMessageCapability`)
+- TASK-074: Capability Framework Tests (41 tests passing — TASK-067 to TASK-073 fully covered)
 
 # In Progress
 
-- Business Module Extraction (Sprint-12: Radio Module & CRM Module)
+- Business Module Extraction (Sprint-13: Radio Module, Provider extraction)
+- AI Manager Module Scoping (Sprint-15+)
 
 # Blockers
 
@@ -108,10 +118,11 @@ None
 
 # Next Tasks
 
-1. Business Module Extraction (Sprint-12: Radio Module, CRM Module)
-2. Generic Dashboard Refactoring
-3. Real Infrastructure Providers (Gemini, SQLite/Postgres, OpenAI)
-4. Integration Tests
+1. Sprint-13: Radio Business Module (migrate `services/broadcast/`, `services/content/`, `services/tools/live_ops/`)
+2. Sprint-13: Provider Layer (GeminiProvider, AzuraCastProvider, ElevenLabsProvider, PostgresMemoryProvider)
+3. Sprint-14: CRM Module (CustomerModule)
+4. Sprint-15+: AI Manager Module (migrate `services/brain/brain.py`, `services/agent/`)
+5. Real Infrastructure Integration Tests
 
 # Current Goal
 
