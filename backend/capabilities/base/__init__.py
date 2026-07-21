@@ -11,6 +11,9 @@ from .capability_result import CapabilityResult
 from .capability_scope import CapabilityScope
 from .manifest import CapabilityManifest
 
+# Re-exported for backward compatibility with Frozen Core (backend/runtime/capability.py)
+from capabilities.legacy_base import CapabilityRegistry
+
 __all__ = [
     "BaseCapability",
     "CapabilityContext",
@@ -19,4 +22,6 @@ __all__ = [
     "CapabilityResult",
     "CapabilityScope",
     "CapabilityManifest",
+    "CapabilityRegistry",
 ]
+

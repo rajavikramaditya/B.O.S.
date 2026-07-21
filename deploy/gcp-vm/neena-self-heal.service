@@ -1,7 +1,0 @@
-[Unit]
-Description=Neena allowlisted self-heal host agent (one shot)
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/neena-self-heal.sh
-Nice=5

@@ -8,11 +8,11 @@ Architecture Migration — Post Core Freeze
 
 # Current Sprint
 
-Sprint-12 (Capability Framework & Resolution Engine)
+Sprint-12.1 (Capability Framework Stabilization & Permanent Cleanup)
 
 # Current Milestone
 
-Sprint-12 Completed (Capability Base Contract `backend/capabilities/base/`, RuntimeCapabilityRegistry, CapabilityResolver, CapabilityPolicyManager, CapabilityEventPublisher, 3 Reference Capabilities, 41 tests, Legacy Service Classification `docs/LEGACY_SERVICE_CLASSIFICATION.md`, ADR-007)
+Sprint-12.1 Completed (Removed all dynamic import workarounds (`importlib` count in `backend/` = 0), eliminated `base.py` vs `base/` package shadowing by renaming legacy base to `legacy_base.py`, 41 tests passing, `docs/SPRINT_12_1_STABILIZATION_REPORT.md`)
 
 # Current Priority
 
@@ -106,6 +106,7 @@ Legacy Neena project is the migration source.
 - TASK-072: Capability Event Publisher (`backend/capabilities/events.py` with `CapabilityEventPublisher`, 5 event types, graceful EventBus degradation)
 - TASK-073: Reference Capabilities (`backend/capabilities/reference/` with `GenerateTextCapability`, `StoreDocumentCapability`, `SendMessageCapability`)
 - TASK-074: Capability Framework Tests (41 tests passing — TASK-067 to TASK-073 fully covered)
+- TASK-075: Capability Framework Stabilization (`backend/capabilities/legacy_base.py`, 0 `importlib` usages in `backend/`, `docs/SPRINT_12_1_STABILIZATION_REPORT.md`)
 
 # In Progress
 
