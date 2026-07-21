@@ -127,6 +127,8 @@ This document is the single source of truth for all software modules, packages, 
 | `services/safety` | Legacy Security | Legacy Safety Kernel & confirm logic | Database | Main Router | RETIRED (Deleted) |
 | `services/brain` | Legacy Intelligence | Neena AI manager state snapshot | Services | Main Router | RETIRED (Deleted) |
 | `routers/broadcast` | API Router | Broadcast endpoints | Broadcast Service | Frontend | RETIRED (Deleted) |
+| `capabilities (legacy)` | Capability Layer | Legacy messaging, scheduling, memory, and automation capability bridge files | Services | Runtime | RETIRED (Archived to legacy/business_extract/) |
+
 
 ---
 

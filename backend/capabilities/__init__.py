@@ -10,29 +10,17 @@ Sprint-12 Framework:
   - capabilities.events          → CapabilityEventPublisher
   - capabilities.reference.*     → Reference implementations
 
-Legacy Layer (preserved until domain module extraction in Sprint-13/14):
-  - LegacyBaseCapability, LegacyCapabilityResult, LegacyCapabilityRegistry
-  - MessagingCapability, SchedulingCapability, MemoryCapability, AutomationCapability
+Legacy Layer (compatibility bridge for Frozen Core v1.0):
+  - LegacyCapabilityRegistry     → Compatibility registry wrapping RuntimeCapabilityRegistry
 """
 
 from .legacy_base import (
-    BaseCapability as LegacyBaseCapability,
     CapabilityRegistry as LegacyCapabilityRegistry,
-    CapabilityResult as LegacyCapabilityResult,
 )
-from .messaging import MessagingCapability
-from .scheduling import SchedulingCapability
-from .memory import MemoryCapability
-from .automation import AutomationCapability
 
 __all__ = [
-    # Legacy (preserved for backward compatibility)
-    "LegacyBaseCapability",
-    "LegacyCapabilityResult",
+    # Legacy (preserved for backward compatibility with Frozen Core)
     "LegacyCapabilityRegistry",
-    "MessagingCapability",
-    "SchedulingCapability",
-    "MemoryCapability",
-    "AutomationCapability",
 ]
+
 

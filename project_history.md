@@ -190,6 +190,8 @@ Configuration, Secrets & Environment Framework (Sprint-11 Completed)
 - **Legacy Service Classification**: Complete `docs/LEGACY_SERVICE_CLASSIFICATION.md` created — 100+ files in `backend/services/` classified into Generic Platform Capability / Business Module Logic / AI Manager Logic / Infrastructure Provider / Dead Legacy with migration sprint targets.
 - **Capability Framework Stabilization**: Removed 100% of `importlib` dynamic imports in the entire `backend/` codebase. Renamed legacy `base.py` to `legacy_base.py` to eliminate module collision with new `base/` package. Compatibility with Frozen Core maintained via standard re-export in `capabilities.base`.
 - **B.O.S. Architecture Convergence Audit**: Evaluated entire codebase structure, classifying 100% of files (reported in `docs/REPOSITORY_CONVERGENCE_REPORT.md`). Verified architecture compliance with automated validation tool (Architectural Score: 95/100, report in `ARCHITECTURE_REPORT.md`). Obsolete modules in `MODULE_REGISTRY.md` marked as RETIRED.
+- **Legacy Capability Elimination**: Removed all legacy capability files (`messaging.py`, `scheduling.py`, `memory.py`, `automation.py`) containing business-specific and radio-specific actions from the platform capability package. Archived all business logic code to `legacy/business_extract/`. Reduced `legacy_base.py` to the bare minimum compatibility registry required by the Frozen Core. B.O.S. Capability Framework is now 100% generic, pure, and ready for business module plug-ins in Sprint-13.
+
 
 ---
 

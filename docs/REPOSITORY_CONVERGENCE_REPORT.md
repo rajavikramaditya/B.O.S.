@@ -1,6 +1,6 @@
 # B.O.S. Repository Convergence Report
 
-**Sprint:** Architecture Convergence (Final Cleanup)  
+**Sprint:** Architecture Convergence (Final Cleanup) & Sprint-12.2 (Legacy Capability Elimination)  
 **Date:** July 21, 2026  
 **Status:** COMPLETE & APPROVED FOR SPRINT-13  
 
@@ -21,7 +21,8 @@ Every file in the repository (excluding `.git`, test caches, and the approved `L
 | **ACTIVE_DOCUMENT** | 25 | Active documentation, system specs, ADRs, and roadmap. |
 | **ACTIVE_TEST** | 1 | Suite of capability framework validation tests. |
 | **GENERATED** | 3 | Environment config files and automatically generated reports. |
-| **DEPRECATED** | 6 | Legacy bridge capabilities, kept for compatibility with Frozen Core v1.0. |
+| **DEPRECATED** | 1 | Legacy compatibility base registry `legacy_base.py` required by Frozen Core. |
+| **ARCHIVED** | 4 | Legacy capabilities containing business-specific / radio logic moved to `legacy/business_extract/`. |
 
 ---
 
@@ -29,22 +30,32 @@ Every file in the repository (excluding `.git`, test caches, and the approved `L
 
 No files were deleted in this sprint. Obsolete legacy files under `backend/services/` were permanently deleted in the preceding stabilization sprint.
 
-## 3. Moved Files
+## 3. Moved & Archived Files
 
-- `backend/capabilities/base.py` was renamed to `backend/capabilities/legacy_base.py` (`git mv`) to eliminate package vs file module shadowing.
+The following legacy capability bridge files containing business-specific / radio logic have been archived out of the platform Capability package to clean up layer separation:
+
+- `backend/capabilities/messaging.py` → `legacy/business_extract/messaging.py`
+- `backend/capabilities/scheduling.py` → `legacy/business_extract/scheduling.py`
+- `backend/capabilities/memory.py` → `legacy/business_extract/memory.py`
+- `backend/capabilities/automation.py` → `legacy/business_extract/automation.py`
+
+Legacy base capability file:
+- `backend/capabilities/base.py` → renamed to `backend/capabilities/legacy_base.py` to eliminate directory shadowing, then reduced to the bare minimum compatibility interface.
+
+---
 
 ## 4. Updated Docs
 
-- **`MODULE_REGISTRY.md`**: Updated to register the complete **Sprint-12 Capability Framework** components and marked all deleted legacy modules (`services/broadcast`, `services/content`, `services/safety`, `services/brain`, `routers/broadcast`) as `RETIRED`.
-- **`project_status.md`**: Updated current sprint to Convergence Audit and logged milestone completion.
-- **`project_history.md`**: Added permanent stabilization and repository convergence milestone logs.
+- **`MODULE_REGISTRY.md`**: Registered the complete **Sprint-12 Capability Framework** components and marked all deleted legacy modules and archived capability files as `RETIRED`.
+- **`project_status.md`**: Updated current sprint to Convergence Audit/Sprint-12.2 and logged milestone completion.
+- **`project_history.md`**: Added permanent stabilization and legacy capability elimination milestone logs.
 
 ---
 
 ## 5. Remaining Technical Debt
 
-- **Legacy Capability Files**: `capabilities/messaging.py`, `capabilities/scheduling.py`, `capabilities/memory.py`, and `capabilities/automation.py` represent temporary bridge logic containing radio/AI manager logic. These will be cleanly extracted and deleted in Sprint-13 (Radio Module) and Sprint-14 (CRM Module).
-- **Dual Capability Registry Support**: Legacy `CapabilityRegistry` is re-exported under `capabilities.base` for Frozen Core compatibility. This will be retired when the core runtime engine is updated to point to `RuntimeCapabilityRegistry` (gated by a future post-core freeze ADR).
+- **Dual Capability Registry Support**: Legacy `CapabilityRegistry` is re-exported under `capabilities.base` for Frozen Core compatibility. It resolves actions by querying `RuntimeCapabilityRegistry` dynamically via lazy lookup. This will be retired when the core runtime engine is updated to consume `RuntimeCapabilityRegistry` directly (gated by a future post-core freeze ADR).
+- **Extraction Archive**: The archived files under `legacy/business_extract/` are kept purely as read-only references for business module extraction in Sprint-13 and Sprint-14.
 
 ---
 
@@ -59,6 +70,6 @@ No files were deleted in this sprint. Obsolete legacy files under `backend/servi
 
 ## 7. Recommendations before Sprint-13
 
-1. **Keep Imports Safe**: During Sprint-13 Radio module implementation, enforce importing business/knowledge graph components exclusively through the facade layer: `core.graph.business` and `core.graph.knowledge`.
-2. **Execute via Resolver**: Ensure any new capability or provider added in future sprints utilizes `CapabilityResolver` for validation, avoiding direct service or module references.
-3. **Run Pre-Commit Validator**: Execute `python backend/core/architecture_validator.py` before push to confirm compliance score remains at 95/100.
+1. **Pure Platform Layer**: The `backend/capabilities/` package is now 100% generic and contains zero business-specific, radio-specific, or crm-specific rules.
+2. **Keep Imports Safe**: During Sprint-13 Radio module implementation, enforce importing business/knowledge graph components exclusively through the facade layer: `core.graph.business` and `core.graph.knowledge`.
+3. **Execute via Resolver**: Ensure any new capability or provider added in future sprints utilizes `CapabilityResolver` for validation, avoiding direct service or module references.

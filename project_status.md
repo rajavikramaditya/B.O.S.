@@ -8,11 +8,11 @@ Architecture Migration — Post Core Freeze
 
 # Current Sprint
 
-Architecture Convergence (Final Cleanup & Registry Validation)
+Sprint-12.2 (Legacy Capability Elimination & Final Cleanup)
 
 # Current Milestone
 
-Repository Convergence Completed (Validated single architecture representation, 41/41 tests passing, generated `docs/REPOSITORY_CONVERGENCE_REPORT.md` and `ARCHITECTURE_REPORT.md`, updated `MODULE_REGISTRY.md` to RETIRED for legacy services and STABLE for Sprint-12 Capability Framework)
+Sprint-12.2 Completed (Moved all legacy capabilities `messaging.py`, `scheduling.py`, `memory.py`, `automation.py` to `legacy/business_extract/`, reduced `legacy_base.py` to the minimum compatibility contract for Frozen Core runtime, Capability Framework is 100% generic, all 41 tests passing)
 
 # Current Priority
 
@@ -108,6 +108,7 @@ Legacy Neena project is the migration source.
 - TASK-074: Capability Framework Tests (41 tests passing — TASK-067 to TASK-073 fully covered)
 - TASK-075: Capability Framework Stabilization (`backend/capabilities/legacy_base.py`, 0 `importlib` usages in `backend/`, `docs/SPRINT_12_1_STABILIZATION_REPORT.md`)
 - TASK-076: B.O.S. Architecture Convergence Audit (`docs/REPOSITORY_CONVERGENCE_REPORT.md`, `ARCHITECTURE_REPORT.md`, updated legacy service registry to RETIRED)
+- TASK-077: Legacy Capability Elimination (`backend/capabilities/legacy_base.py` minimum compatibility bridge, legacy files archived to `legacy/business_extract/`)
 
 # In Progress
 
