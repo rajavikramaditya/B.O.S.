@@ -1,10 +1,26 @@
 """B.O.S. Messaging Capability v0.1
 
 Provides generic messaging actions across communication channels.
+
+NOTE: Uses legacy base.py loaded directly to avoid conflict with base/ sub-package.
+Pending migration to Radio Business Module (Sprint-13).
 """
 
+import importlib.util as _ilu
+import pathlib as _pl
 from typing import Any, Dict, List
-from .base import BaseCapability, CapabilityResult, CapabilityRegistry
+
+def _load_legacy():
+    _p = _pl.Path(__file__).parent / "base.py"
+    spec = _ilu.spec_from_file_location("capabilities._legacy_base", _p)
+    m = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+_lb = _load_legacy()
+BaseCapability = _lb.BaseCapability
+CapabilityResult = _lb.CapabilityResult
+CapabilityRegistry = _lb.CapabilityRegistry
 
 
 class MessagingCapability(BaseCapability):
