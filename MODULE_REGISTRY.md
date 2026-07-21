@@ -105,15 +105,28 @@ This document is the single source of truth for all software modules, packages, 
 
 ---
 
-# 8. Legacy Modules (Read-Only Knowledge Sources)
+# 7.5. Capability Framework
 
 | Module Name | Layer | Purpose | Dependencies | Consumers | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `services/broadcast` | Business Module | AzuraCast streaming & radio broadcast management | AzuraCast Client | Radio Module | Legacy |
-| `services/content` | Content Service | Regional news scraper | Requests | Knowledge Ingestion | Legacy |
-| `services/safety` | Legacy Security | Legacy Safety Kernel & confirm logic | Database | Main Router | Legacy |
-| `services/brain` | Legacy Intelligence | Neena AI manager state snapshot | Services | Main Router | Legacy |
-| `routers/broadcast` | API Router | Broadcast endpoints | Broadcast Service | Frontend | Legacy |
+| `capabilities/base` | Capability Layer | Base capability contracts (`BaseCapability`, `CapabilityMetadata`, `CapabilityContext`, `CapabilityResult`, `CapabilityScope`, `CapabilityLifecycle`, `CapabilityManifest`) | None | System Modules | Stable |
+| `capabilities/registry` | Capability Layer | Central platform capability registry, category & version index, dependency checks | BaseCapability | CapabilityResolver | Stable |
+| `capabilities/resolver` | Capability Layer | Dynamic capability resolver executing the 4-step pipeline | RuntimeCapabilityRegistry, CapabilityPolicyManager | Business Modules | Stable |
+| `capabilities/policies` | Governance Layer | Capability execution policy manager (allowed/denied providers, permissions, tenant restrictions, feature flags) | BaseCapability, CapabilityContext | CapabilityResolver | Stable |
+| `capabilities/events` | Capability Layer | Lifecycle event publisher forwarding to RuntimeEventBus | RuntimeEventBus | CapabilityRegistry, CapabilityResolver | Stable |
+| `capabilities/reference` | Reference Capabilities | Text generation, storage, and message capabilities | BaseCapability, ProviderResolver | System Modules | Stable |
+
+---
+
+# 8. Legacy Services (RETIRED)
+
+| Module Name | Layer | Purpose | Dependencies | Consumers | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `services/broadcast` | Business Module | AzuraCast streaming & radio broadcast management | AzuraCast Client | Radio Module | RETIRED (Deleted) |
+| `services/content` | Content Service | Regional news scraper | Requests | Knowledge Ingestion | RETIRED (Deleted) |
+| `services/safety` | Legacy Security | Legacy Safety Kernel & confirm logic | Database | Main Router | RETIRED (Deleted) |
+| `services/brain` | Legacy Intelligence | Neena AI manager state snapshot | Services | Main Router | RETIRED (Deleted) |
+| `routers/broadcast` | API Router | Broadcast endpoints | Broadcast Service | Frontend | RETIRED (Deleted) |
 
 ---
 
@@ -123,3 +136,4 @@ This document is the single source of truth for all software modules, packages, 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `modules/radio` | Business Module | Radio station scheduling & stream automation | Capability Layer | Platform Users | Future |
 | `modules/crm` | Business Module | Customer relationship & lead pipeline | Capability Layer | Platform Users | Future |
+

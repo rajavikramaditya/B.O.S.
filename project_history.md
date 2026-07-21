@@ -188,7 +188,8 @@ Configuration, Secrets & Environment Framework (Sprint-11 Completed)
 - **Centralized Configuration & Secrets**: All `.env`, secret credentials, feature flags, and tenant overrides resolve via `ConfigurationResolver` and `SecretManager`.
 - **Capability Framework**: Formal `BaseCapability`, `RuntimeCapabilityRegistry`, `CapabilityResolver`, `CapabilityPolicyManager`, `CapabilityEventPublisher` and 3 reference capabilities implemented. Legacy capabilities preserved alongside new framework via compatibility bridge.
 - **Legacy Service Classification**: Complete `docs/LEGACY_SERVICE_CLASSIFICATION.md` created — 100+ files in `backend/services/` classified into Generic Platform Capability / Business Module Logic / AI Manager Logic / Infrastructure Provider / Dead Legacy with migration sprint targets.
-- **Key Architecture Decision**: Two parallel capability systems (Legacy `CapabilityRegistry` + `UniversalCapabilityRegistry`) resolved using compatibility bridge — `importlib.util` direct file loading prevents Python `base/` package shadowing `base.py` from breaking Frozen Core consumers.
+- **Capability Framework Stabilization**: Removed 100% of `importlib` dynamic imports in the entire `backend/` codebase. Renamed legacy `base.py` to `legacy_base.py` to eliminate module collision with new `base/` package. Compatibility with Frozen Core maintained via standard re-export in `capabilities.base`.
+- **B.O.S. Architecture Convergence Audit**: Evaluated entire codebase structure, classifying 100% of files (reported in `docs/REPOSITORY_CONVERGENCE_REPORT.md`). Verified architecture compliance with automated validation tool (Architectural Score: 95/100, report in `ARCHITECTURE_REPORT.md`). Obsolete modules in `MODULE_REGISTRY.md` marked as RETIRED.
 
 ---
 
