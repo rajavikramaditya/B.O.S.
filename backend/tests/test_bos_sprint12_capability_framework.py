@@ -563,3 +563,72 @@ def test_plan_executor_cancellation():
     assert state.cancel_requested is True
     assert state.status == ExecutorStatus.CANCELLED
 
+
+def test_context_recency_and_pronoun_resolution():
+    """Verify context recency cache updates and Hinglish pronoun resolutions."""
+    from runtime.context.context_engine import ContextEngine
+    from runtime.contracts import NormalizedRequest, BusinessIntent
+
+    req = NormalizedRequest(request_id="r1", role="customer", message="hello")
+    
+    # 1. Update cache with concrete entity values
+    intent1 = BusinessIntent(intent_type="ad", action="play", entities={
+        "customer_id": "cust_999",
+        "invoice_id": "inv_888",
+        "asset_id": "asset_777"
+    })
+    ctx1 = ContextEngine.load_context(req, intent1)
+    
+    assert ctx1.entity_recency_cache.get("customer") == "cust_999"
+    assert ctx1.entity_recency_cache.get("invoice") == "inv_888"
+    assert ctx1.entity_recency_cache.get("asset") == "asset_777"
+
+    # 2. Resolve pronouns in next request using the cache
+    intent2 = BusinessIntent(intent_type="ad", action="notify", entities={
+        "customer_id": "usko",
+        "invoice_id": "last invoice",
+        "asset_id": "wahi"
+    })
+    ctx2 = ContextEngine.load_context(req, intent2)
+
+    assert intent2.entities["customer_id"] == "cust_999"
+    assert intent2.entities["invoice_id"] == "inv_888"
+    assert intent2.entities["asset_id"] == "asset_777"
+
+
+def test_continue_on_failure_and_mixed_paths():
+    """Verify PlanExecutor continues on non-critical step failures and aborts on critical ones."""
+    from runtime.plan_executor.executor import PlanExecutor
+    from runtime.plan_executor.executor_state import ExecutorState, ExecutorStatus
+    from runtime.contracts import ExecutionPlan, PlanStep
+    from unittest.mock import patch
+
+    # Define steps:
+    # step1: non-critical (fails, should skip rollback and continue)
+    # step2: critical (succeeds)
+    # step3: critical (fails, should trigger rollback and abort)
+    step1 = PlanStep(step_id="s1", action="invalid_action_1", params={"channel": "test"}, continue_on_failure=True)
+    step2 = PlanStep(step_id="s2", action="echo", params={"channel": "test"})
+    step3 = PlanStep(step_id="s3", action="invalid_action_2", params={"channel": "test"}, continue_on_failure=False)
+    
+    plan = ExecutionPlan(plan_id="p1", intent_type="test", steps=[step1, step2, step3])
+
+    state = ExecutorState()
+    
+    with patch("runtime.plan_executor.executor.StepRunner.run_step") as mock_run:
+        def side_effect(step, state_obj, role):
+            if "invalid_action" in step.action:
+                return {"status": "FAILED", "action": step.action, "error": "Simulated error"}
+            return {"status": "SUCCESS", "action": step.action, "data": {}}
+        mock_run.side_effect = side_effect
+
+        out_state = PlanExecutor.execute_plan(plan, existing_state=state)
+
+    # step1 failed but was skipped -> completed step index should move past step2 and abort at step3
+    assert len(out_state.failed_steps) == 2  # s1 and s3 failed
+    assert len(out_state.completed_steps) == 1  # s2 succeeded
+    assert out_state.status == ExecutorStatus.ROLLED_BACK
+    assert out_state.current_step_index == 2  # rolled back to step index 2 (from last checkpoint of s3)
+
+
+

@@ -55,9 +55,14 @@ class PlanExecutor:
                 state.current_step_index += 1
             else:
                 state.failed_steps.append({"step_index": idx, "action": step.action, "res": res})
-                # Attempt rollback or retry
-                RollbackHandler.rollback(state)
-                break
+                if getattr(step, "continue_on_failure", False):
+                    # Non-critical step failure: log and advance without rolling back
+                    state.current_step_index += 1
+                else:
+                    # Critical step failure: roll back and abort execution
+                    RollbackHandler.rollback(state)
+                    break
+
 
         if state.cancel_requested:
             state.status = ExecutorStatus.CANCELLED

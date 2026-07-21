@@ -45,6 +45,8 @@ class RuntimeContext:
     live_snapshot: Dict[str, Any] = field(default_factory=dict)
     owner_preferences: Dict[str, Any] = field(default_factory=dict)
     system_knowledge: Dict[str, Any] = field(default_factory=dict)
+    entity_recency_cache: Dict[str, str] = field(default_factory=dict)
+
 
 
 @dataclass
@@ -61,6 +63,8 @@ class ExecutionPlanStep:
     action: str
     params: Dict[str, Any] = field(default_factory=dict)
     capability: str = "default"
+    continue_on_failure: bool = False
+
 
 
 PlanStep = ExecutionPlanStep
