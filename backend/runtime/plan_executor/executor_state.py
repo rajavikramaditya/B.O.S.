@@ -16,6 +16,8 @@ class ExecutorStatus(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     ROLLED_BACK = "ROLLED_BACK"
+    CANCELLING = "CANCELLING"
+    CANCELLED = "CANCELLED"
 
 
 @dataclass
@@ -27,6 +29,7 @@ class ExecutorState:
     failed_steps: List[Dict[str, Any]] = field(default_factory=list)
     checkpoints: Dict[str, Any] = field(default_factory=dict)
     execution_result: Dict[str, Any] = field(default_factory=dict)
+    cancel_requested: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -36,4 +39,6 @@ class ExecutorState:
             "failed_steps": self.failed_steps,
             "checkpoints": self.checkpoints,
             "execution_result": self.execution_result,
+            "cancel_requested": self.cancel_requested,
         }
+

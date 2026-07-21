@@ -530,3 +530,36 @@ def test_reference_capability_registers_in_registry():
     assert "generate_text" in names
     assert "store_document" in names
     assert "send_message" in names
+
+
+def test_plan_executor_cancellation():
+    """Verify that PlanExecutor respects cancel_requested flags and aborts cleanly."""
+    from runtime.plan_executor.executor import PlanExecutor
+    from runtime.plan_executor.executor_state import ExecutorState, ExecutorStatus
+    from runtime.contracts import ExecutionPlan, PlanStep
+
+    # Define a 3-step plan
+    step1 = PlanStep(step_id="s1", action="echo", params={"channel": "test"})
+    step2 = PlanStep(step_id="s2", action="echo", params={"channel": "test"})
+    step3 = PlanStep(step_id="s3", action="echo", params={"channel": "test"})
+    plan = ExecutionPlan(plan_id="p1", intent_type="test", steps=[step1, step2, step3])
+
+    # Run execution with cancellation request pre-set
+    cancelled_state = ExecutorState(cancel_requested=True)
+    out_state = PlanExecutor.execute_plan(plan, existing_state=cancelled_state)
+    
+    assert out_state.status == ExecutorStatus.CANCELLED
+    assert out_state.current_step_index == 0
+
+    # Test request_cancel transition
+    state = ExecutorState(status=ExecutorStatus.RUNNING)
+    PlanExecutor.request_cancel(state)
+    assert state.cancel_requested is True
+    assert state.status == ExecutorStatus.CANCELLING
+
+    # Test request_cancel when waiting for approval
+    state = ExecutorState(status=ExecutorStatus.WAITING_APPROVAL)
+    PlanExecutor.request_cancel(state)
+    assert state.cancel_requested is True
+    assert state.status == ExecutorStatus.CANCELLED
+

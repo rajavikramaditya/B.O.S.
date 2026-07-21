@@ -23,10 +23,21 @@ class PlanExecutor:
         existing_state: Optional[ExecutorState] = None,
     ) -> ExecutorState:
         state = existing_state or ExecutorState()
+        
+        # If cancellation was already requested, abort immediately
+        if state.cancel_requested:
+            state.status = ExecutorStatus.CANCELLED
+            return state
+
         state.status = ExecutorStatus.RUNNING
 
         steps = plan.steps or []
         while state.current_step_index < len(steps):
+            # Check for cancellation request at step transition
+            if state.cancel_requested:
+                state.status = ExecutorStatus.CANCELLED
+                break
+
             idx = state.current_step_index
             step = steps[idx]
 
@@ -48,13 +59,27 @@ class PlanExecutor:
                 RollbackHandler.rollback(state)
                 break
 
-        if state.current_step_index >= len(steps) and state.status == ExecutorStatus.RUNNING:
+        if state.cancel_requested:
+            state.status = ExecutorStatus.CANCELLED
+        elif state.current_step_index >= len(steps) and state.status == ExecutorStatus.RUNNING:
             state.status = ExecutorStatus.COMPLETED
 
         return state
 
     @classmethod
+    def request_cancel(cls, state: ExecutorState) -> None:
+        """Flag execution state for cancellation."""
+        state.cancel_requested = True
+        if state.status == ExecutorStatus.RUNNING:
+            state.status = ExecutorStatus.CANCELLING
+        elif state.status == ExecutorStatus.WAITING_APPROVAL or state.status == ExecutorStatus.PAUSED:
+            state.status = ExecutorStatus.CANCELLED
+
+    @classmethod
     def resume_execution(cls, plan: ExecutionPlan, state: ExecutorState, role: str = "owner") -> ExecutorState:
+        if state.cancel_requested:
+            state.status = ExecutorStatus.CANCELLED
+            return state
         state.status = ExecutorStatus.RUNNING
         # If paused at WAITING_APPROVAL, approve and advance
         if state.current_step_index < len(plan.steps):
@@ -65,6 +90,9 @@ class PlanExecutor:
 
     @classmethod
     def skip_step(cls, plan: ExecutionPlan, state: ExecutorState) -> ExecutorState:
+        if state.cancel_requested:
+            state.status = ExecutorStatus.CANCELLED
+            return state
         if state.current_step_index < len(plan.steps):
             state.completed_steps.append({
                 "step_index": state.current_step_index,
@@ -73,3 +101,4 @@ class PlanExecutor:
             })
             state.current_step_index += 1
         return cls.execute_plan(plan, existing_state=state)
+
