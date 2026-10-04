@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Literal
 
 
-ActorRole = Literal["owner", "customer", "employee"]
+ActorRole = Literal["owner", "customer", "employee", "system"]
 
 
 @dataclass
@@ -24,6 +24,8 @@ class NormalizedRequest:
     phone: str = ""
     timestamp: float = 0.0
     raw_payload: Dict[str, Any] = field(default_factory=dict)
+    conversation_id: str = ""
+    actor_ref: str = ""
 
 
 @dataclass
@@ -35,6 +37,13 @@ class BusinessIntent:
     goal: str = ""
     slots: Dict[str, Any] = field(default_factory=dict)
     confidence: float = 1.0
+    summary: str = ""
+    language: str = ""
+    proposed_steps: List[Dict[str, Any]] = field(default_factory=list)
+    reply_draft: str = ""
+    insights: List[Dict[str, Any]] = field(default_factory=list)
+    understood_by: str = ""
+    error: Optional[str] = None
 
 
 @dataclass
@@ -46,6 +55,12 @@ class RuntimeContext:
     owner_preferences: Dict[str, Any] = field(default_factory=dict)
     system_knowledge: Dict[str, Any] = field(default_factory=dict)
     entity_recency_cache: Dict[str, str] = field(default_factory=dict)
+    business_profile: Dict[str, Any] = field(default_factory=dict)
+    business_snapshot: Dict[str, Any] = field(default_factory=dict)
+    conversation_history: List[Dict[str, Any]] = field(default_factory=list)
+    capability_catalog: List[Dict[str, Any]] = field(default_factory=list)
+    actor_profile: Dict[str, Any] = field(default_factory=dict)
+    autopilot_mode: str = "autopilot"
 
 
 
@@ -64,6 +79,9 @@ class ExecutionPlanStep:
     params: Dict[str, Any] = field(default_factory=dict)
     capability: str = "default"
     continue_on_failure: bool = False
+    title: str = ""
+    reason: str = ""
+    risk: str = "safe"
 
 
 
@@ -77,6 +95,8 @@ class ExecutionPlan:
     intent_type: str
     steps: List[ExecutionPlanStep] = field(default_factory=list)
     requires_approval: bool = False
+    goal: str = ""
+    preapproved: bool = False
 
 
 @dataclass
@@ -87,6 +107,9 @@ class PolicyDecision:
     reason: str = ""
     protected: bool = False
     requires_confirmation: bool = False
+    allowed_steps: List[Any] = field(default_factory=list)
+    pending_steps: List[Any] = field(default_factory=list)
+    denied_steps: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -94,6 +117,7 @@ class CapabilitySelection:
     """Stage 7: Capability Engine output."""
     selected_capabilities: List[str] = field(default_factory=list)
     capabilities: Dict[str, Any] = field(default_factory=dict)
+    mappings: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -104,6 +128,8 @@ class ExecutionResult:
     reply: str = ""
     factual_packet: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
+    step_results: List[Dict[str, Any]] = field(default_factory=list)
+    raw_result: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -112,6 +138,11 @@ class VerificationReport:
     verified: bool = True
     truth_level: str = "verified"
     notes: str = ""
+    scrubbed_reply: str = ""
+    factual_packet: Dict[str, Any] = field(default_factory=dict)
+    action_type: str = ""
+    failed_steps: List[Dict[str, Any]] = field(default_factory=list)
+    retryable_steps: List[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -119,6 +150,8 @@ class MemoryUpdateReport:
     """Stage 10: Memory Engine output."""
     saved: bool = True
     memory_key: str = ""
+    persisted: bool = True
+    autosaved_facts: List[Any] = field(default_factory=list)
 
 
 MemoryUpdate = MemoryUpdateReport
@@ -132,3 +165,6 @@ class RuntimeResponse:
     factual_packet: Dict[str, Any]
     source: str = "bos_runtime"
     execution_id: str = ""
+    route: str = "runtime"
+    role: str = ""
+    trace: Dict[str, Any] = field(default_factory=dict)

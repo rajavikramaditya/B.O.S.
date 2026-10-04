@@ -29,3 +29,20 @@ class ApprovalPolicy:
             return "CONFIRM"
 
         return "ALLOW"
+
+    @classmethod
+    def requires_human(cls, risk: str, autopilot_mode: str) -> bool:
+        """Metadata-driven approval rule shared by every capability.
+
+        risk:  read | safe | external | sensitive  (declared by the capability)
+        mode:  off | assist | autopilot | autonomous  (chosen by the owner)
+        """
+        if risk == "read":
+            return False
+        if risk == "sensitive":
+            return True
+        if autopilot_mode == "autonomous":
+            return False
+        if autopilot_mode in ("assist", "off"):
+            return True
+        return risk != "safe"

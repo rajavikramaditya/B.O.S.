@@ -1,43 +1,40 @@
-"""B.O.S. Email Messaging Adapter v0.1
+"""B.O.S. Email Messaging Adapter v1.0
 
-Adapter connecting platform messaging capabilities to SMTP / Email providers.
+Delivers email over SMTP (works with Gmail, Outlook, Zoho, SES, any SMTP server).
+Credentials: {host, port, username, password, from_address, use_tls?}
 """
 
-from typing import Any, Dict
-from ..base_adapter import BaseAdapter
-from ..adapter_contracts import AdapterRequest, AdapterResponse, AdapterStatus
+import smtplib
+import ssl
+from email.message import EmailMessage
+from typing import Any, Dict, Optional
+
+from .channel_adapter import ChannelAdapter, CredentialsResolver
 
 
-class EmailAdapter(BaseAdapter):
-    """Adapter for Email integration."""
+class EmailAdapter(ChannelAdapter):
+    required_fields = ("host", "username", "password", "from_address")
 
-    def __init__(self, name: str = "email"):
-        super().__init__(name=name, channel_type="messaging")
+    def __init__(self, name: str = "email", credentials: Optional[CredentialsResolver] = None):
+        super().__init__(name=name, credentials=credentials)
 
-    def connect(self) -> bool:
-        self.status = AdapterStatus.CONNECTED
-        return True
+    def deliver(self, creds: Dict[str, Any], recipient: str, text: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        msg = EmailMessage()
+        msg["From"] = creds["from_address"]
+        msg["To"] = recipient
+        msg["Subject"] = str(payload.get("subject") or "A message for you")
+        msg.set_content(text)
 
-    def disconnect(self) -> bool:
-        self.status = AdapterStatus.DISCONNECTED
-        return True
-
-    def health_check(self) -> Dict[str, Any]:
-        return {"adapter": self.name, "status": self.status, "reachable": True}
-
-    def execute_request(self, request: AdapterRequest) -> AdapterResponse:
-        email_to = request.recipient
-        subject = request.payload.get("subject", "Notification")
-        body = request.payload.get("text") or request.payload.get("body", "")
-
-        return AdapterResponse(
-            success=True,
-            status=self.status,
-            data={
-                "channel": "email",
-                "email_to": email_to,
-                "subject": subject,
-                "sent_body": body,
-                "provider_ref": f"email_msg_{request.request_id}",
-            },
-        )
+        port = int(creds.get("port") or 587)
+        context = ssl.create_default_context()
+        if port == 465:
+            with smtplib.SMTP_SSL(creds["host"], port, context=context, timeout=30) as smtp:
+                smtp.login(creds["username"], creds["password"])
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(creds["host"], port, timeout=30) as smtp:
+                if str(creds.get("use_tls", "true")).lower() != "false":
+                    smtp.starttls(context=context)
+                smtp.login(creds["username"], creds["password"])
+                smtp.send_message(msg)
+        return {"provider_ref": msg.get("Message-ID", "") or "smtp"}

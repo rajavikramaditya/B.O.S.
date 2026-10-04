@@ -24,8 +24,8 @@ class GraphPlanner:
         nodes = [
             WorkflowNode("START", "Start Execution", NodeType.START),
             WorkflowNode("OBSERVE", "Observe & Normalize Input", NodeType.OBSERVE),
-            WorkflowNode("UNDERSTAND", "Understand Intent & Goal", NodeType.UNDERSTAND),
             WorkflowNode("CONTEXT", "Load Business Context", NodeType.CONTEXT),
+            WorkflowNode("UNDERSTAND", "Understand Intent & Goal", NodeType.UNDERSTAND),
             WorkflowNode("REASON", "Evaluate Execution Strategy", NodeType.REASON),
             WorkflowNode("PLAN", "Formulate Workflow Plan", NodeType.PLAN),
             WorkflowNode("POLICY", "Evaluate Policy & Safety", NodeType.POLICY),
@@ -43,9 +43,10 @@ class GraphPlanner:
 
         # Graph Edges with Conditional Branching
         graph.add_edge("START", "OBSERVE")
-        graph.add_edge("OBSERVE", "UNDERSTAND")
-        graph.add_edge("UNDERSTAND", "CONTEXT")
-        graph.add_edge("CONTEXT", "REASON")
+        # ADR-008: context is loaded before AI interpretation, which depends on it.
+        graph.add_edge("OBSERVE", "CONTEXT")
+        graph.add_edge("CONTEXT", "UNDERSTAND")
+        graph.add_edge("UNDERSTAND", "REASON")
         graph.add_edge("REASON", "PLAN")
         graph.add_edge("PLAN", "POLICY")
 
