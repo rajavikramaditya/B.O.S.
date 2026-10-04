@@ -13,7 +13,7 @@ Actions:
 import time
 from typing import Any, Dict, Optional
 
-from sqlalchemy import JSON, Float, Integer, String, Text, create_engine, func, select
+from sqlalchemy import JSON, Float, Integer, String, Text, create_engine, func, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from ..base.base_provider import BaseProvider
@@ -55,7 +55,7 @@ class _Message(_MemoryBase):
 class SqlMemoryProvider(BaseProvider):
     """Persistent conversation memory."""
 
-    def __init__(self, database_url: str, priority: int = 10):
+    def __init__(self, database_url: str, priority: int = 10, schema: str = ""):
         super().__init__(
             ProviderMetadata(
                 name="sql_memory",
@@ -65,10 +65,18 @@ class SqlMemoryProvider(BaseProvider):
             )
         )
         connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
-        self._engine = create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
+        self._schema = schema if not database_url.startswith("sqlite") else ""
+        engine = create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
+        if self._schema:
+            # Keeps memory in its own schema when it shares a Postgres server with business data.
+            engine = engine.execution_options(schema_translate_map={None: self._schema})
+        self._engine = engine
         self._sessions = sessionmaker(bind=self._engine, expire_on_commit=False)
 
     def _on_initialize(self, context: ProviderContext) -> None:
+        if self._schema:
+            with self._engine.begin() as conn:
+                conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{self._schema}"'))
         _MemoryBase.metadata.create_all(self._engine)
 
     def _on_shutdown(self) -> None:

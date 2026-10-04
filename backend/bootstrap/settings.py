@@ -24,6 +24,14 @@ def _int(name: str, default: int) -> int:
         return default
 
 
+def _sql_url(url: str) -> str:
+    """Hosted Postgres URLs (postgres://, postgresql://) use the installed psycopg 3 driver."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
 def _default_data_dir() -> Path:
     return Path(__file__).resolve().parents[2] / "data"
 
@@ -36,6 +44,7 @@ class PlatformSettings:
     data_dir: Path = field(default_factory=_default_data_dir)
     database_url: str = ""
     memory_database_url: str = ""
+    memory_database_schema: str = ""
     secret_key: str = ""
     public_base_url: str = ""
     cors_origins: List[str] = field(default_factory=list)
@@ -63,8 +72,9 @@ class PlatformSettings:
         settings = cls(
             environment=os.getenv("ENVIRONMENT", "development"),
             data_dir=data_dir,
-            database_url=os.getenv("DATABASE_URL") or f"sqlite:///{data_dir / 'bos.db'}",
-            memory_database_url=os.getenv("MEMORY_DATABASE_URL") or f"sqlite:///{data_dir / 'memory.db'}",
+            database_url=_sql_url(os.getenv("DATABASE_URL") or f"sqlite:///{data_dir / 'bos.db'}"),
+            memory_database_url=_sql_url(os.getenv("MEMORY_DATABASE_URL") or f"sqlite:///{data_dir / 'memory.db'}"),
+            memory_database_schema=os.getenv("MEMORY_DATABASE_SCHEMA", ""),
             secret_key=os.getenv("BOS_SECRET_KEY", ""),
             public_base_url=os.getenv("PUBLIC_BASE_URL", "").rstrip("/"),
             cors_origins=origins,

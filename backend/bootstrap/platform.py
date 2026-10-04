@@ -81,7 +81,7 @@ class Platform:
         providers: List[BaseProvider] = [
             claude,
             gemini,
-            SqlMemoryProvider(settings.memory_database_url),
+            SqlMemoryProvider(settings.memory_database_url, schema=settings.memory_database_schema),
             WorkspaceRecordsProvider(),
             WorkspaceContextProvider(),
             ChannelMessagingProvider(),
