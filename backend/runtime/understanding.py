@@ -71,6 +71,8 @@ AUDIENCE = {
     "system": "the platform itself (a scheduled review or an external event). No human is waiting for a chat reply.",
 }
 
+INTERNAL_ROLES = ("owner", "employee", "system")
+
 OPERATING_PRINCIPLES = """\
 How you operate (B.O.S. principles):
 1. Lead, don't wait. Anticipate what the person needs next and guide them there. Every reply should move
@@ -198,9 +200,11 @@ class UnderstandingEngine:
             "channel": request.channel,
             "sender_name": request.sender_name,
             "actor_profile": context.actor_profile,
-            "business_snapshot": context.business_snapshot,
             "autopilot_mode": context.autopilot_mode,
         }
+        if request.role in INTERNAL_ROLES:
+            # Customers never see internal records (other customers, tasks, approvals).
+            situation["business_snapshot"] = context.business_snapshot
         event = request.raw_payload.get("event") if isinstance(request.raw_payload, dict) else None
         if event:
             situation["event"] = event

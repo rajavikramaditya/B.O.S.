@@ -87,11 +87,12 @@ async def whatsapp_webhook(request: Request, background: BackgroundTasks) -> Dic
     if not creds:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "WhatsApp is not connected.")
     raw = await request.body()
-    if creds.get("app_secret"):
-        signature = request.headers.get("x-hub-signature-256", "")
-        expected = "sha256=" + hmac.new(creds["app_secret"].encode(), raw, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected):
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid signature.")
+    if not creds.get("app_secret"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Add the WhatsApp app secret so incoming messages can be verified.")
+    signature = request.headers.get("x-hub-signature-256", "")
+    expected = "sha256=" + hmac.new(creds["app_secret"].encode(), raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid signature.")
     payload = await request.json()
     for entry in payload.get("entry") or []:
         for change in entry.get("changes") or []:

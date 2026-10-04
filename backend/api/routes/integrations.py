@@ -68,7 +68,7 @@ def connect(connector_id: str, body: ConnectBody) -> Dict[str, Any]:
     if connector is None or connector["kind"] == "builtin":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown connector.")
     values = {f["key"]: (body.fields.get(f["key"]) or "").strip() for f in connector["fields"]}
-    required = [f["key"] for f in connector["fields"] if f["key"] not in ("app_secret", "port")]
+    required = [f["key"] for f in connector["fields"] if f["key"] != "port"]
     missing = [k for k in required if not values.get(k)]
     if missing:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Please fill in: {', '.join(missing)}")

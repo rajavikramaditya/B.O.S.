@@ -1,44 +1,39 @@
+# B.O.S. — single image: API + dashboard.
+
+# ---------- 1. Build the dashboard ----------
+FROM node:22-alpine AS dashboard
+WORKDIR /build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
+
+# ---------- 2. Runtime ----------
 FROM python:3.12-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ffmpeg \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    BOS_DATA_DIR=/data \
+    BOS_FRONTEND_DIST=/app/frontend/dist \
+    ENVIRONMENT=production
 
-# Set up working directory
 WORKDIR /app
+COPY backend/requirements.txt backend/requirements.txt
+RUN pip install -r backend/requirements.txt
 
-# Copy requirements
-COPY backend/requirements.txt .
+COPY backend/ backend/
+COPY --from=dashboard /build/dist frontend/dist
 
-# Install requirements
-RUN pip install --no-cache-dir -r requirements.txt
+RUN groupadd -r bos && useradd -r -g bos -d /app bos \
+    && mkdir -p /data && chown -R bos:bos /data
+USER bos
+VOLUME ["/data"]
 
-# Copy backend files
-COPY backend/ /app/backend/
-
-# Copy frontend files
-COPY frontend/ /app/frontend/
-
-# Create necessary directories and placeholder files
-RUN mkdir -p /app/backend/playout/voice_assets /app/backend/playout/local_voices /app/backend/logs && \
-    touch /app/backend/radio_station.db
-
-# Expose backend port (configurable, default 8000)
+WORKDIR /app/backend
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4)"
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app/backend
-
-# Create non-root user and assign permissions
-RUN groupadd -r neena && useradd -r -g neena neena && \
-    chown -R neena:neena /app
-
-# Run as non-root user
-USER neena
-
-# CMD to start the backend application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# One worker: Autopilot's scheduler and the in-process rate limiter live in this process.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

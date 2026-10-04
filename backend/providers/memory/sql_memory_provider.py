@@ -128,13 +128,13 @@ class SqlMemoryProvider(BaseProvider):
     def _list(self, p: Dict[str, Any]) -> Dict[str, Any]:
         limit = int(p.get("limit") or 50)
         with self._sessions() as db:
-            q = select(_Conversation)
+            filters = []
             if p.get("channel"):
-                q = q.where(_Conversation.channel == p["channel"])
+                filters.append(_Conversation.channel == p["channel"])
             if p.get("actor"):
-                q = q.where(_Conversation.actor == p["actor"])
-            rows = db.scalars(q.order_by(_Conversation.updated_at.desc()).limit(limit)).all()
-            total = db.scalar(select(func.count()).select_from(_Conversation)) or 0
+                filters.append(_Conversation.actor.in_(p["actor"]) if isinstance(p["actor"], list) else _Conversation.actor == p["actor"])
+            rows = db.scalars(select(_Conversation).where(*filters).order_by(_Conversation.updated_at.desc()).limit(limit)).all()
+            total = db.scalar(select(func.count()).select_from(_Conversation).where(*filters)) or 0
         return {"success": True, "total": total, "conversations": [self._conv_dict(c) for c in rows]}
 
     def _get(self, p: Dict[str, Any]) -> Dict[str, Any]:

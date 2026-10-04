@@ -58,3 +58,4 @@ logs/
 
 # B.O.S. runtime data (databases, generated secret key)
 data/
+*.tsbuildinfo

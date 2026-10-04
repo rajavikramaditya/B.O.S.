@@ -216,3 +216,26 @@ def test_ai_key_saved_from_dashboard_enables_provider(platform_app, owner, monke
     assert platform_app.get("/api/setup/status").json()["ai"]["active"]["provider"] == "claude"
     listing = platform_app.get("/api/integrations", headers=owner).json()["connectors"]
     assert "sk-ant-test" not in json.dumps(listing)  # secrets never leave the vault
+
+
+def test_customers_cannot_read_business_records(platform_app, owner, ai):
+    ContactRepository.upsert({"name": "Secret VIP", "phone": "+911111111111"})
+    ai.plan([{"capability": "contacts", "action": "list_contacts", "params": {}}], reply="Here you go")
+    res = platform_app.post("/api/chat", json={"message": "list all customers", "as_customer": True}, headers=owner).json()
+    assert res["executed_steps"] == [] and res["denied_steps"]
+    situation = ai.requests[0]["messages"][-1]["content"]
+    assert "business_snapshot" not in situation  # internal data never reaches customer-facing reasoning
+
+
+def test_whatsapp_webhook_requires_valid_signature(platform_app, ai):
+    body = json.dumps({"entry": []}).encode()
+    ConnectionStore.save("whatsapp", {"access_token": "t", "phone_number_id": "1", "verify_token": "v"})
+    assert platform_app.post("/v1/channels/whatsapp/webhook", content=body).status_code == 401
+    ConnectionStore.save("whatsapp", {"access_token": "t", "phone_number_id": "1", "verify_token": "v", "app_secret": "shh"})
+    bad = platform_app.post("/v1/channels/whatsapp/webhook", content=body, headers={"X-Hub-Signature-256": "sha256=00"})
+    assert bad.status_code == 401
+    sig = "sha256=" + hmac.new(b"shh", body, hashlib.sha256).hexdigest()
+    good = platform_app.post("/v1/channels/whatsapp/webhook", content=body, headers={"X-Hub-Signature-256": sig, "Content-Type": "application/json"})
+    assert good.status_code == 200
+    verify = platform_app.get("/v1/channels/whatsapp/webhook", params={"hub.mode": "subscribe", "hub.verify_token": "v", "hub.challenge": "42"})
+    assert verify.text == "42"

@@ -170,6 +170,47 @@ Configuration, Secrets & Environment Framework (Sprint-11 Completed)
 
 ---
 
+# Sprint-13 Platform Activation & Launch Readiness Milestone (2026-10-04)
+
+### Milestone
+B.O.S. became a runnable, launchable product: AI-native Runtime, owner dashboard, integrations and deployment.
+
+### Significant Bug Found
+- The frozen Runtime could not execute at all. Stages imported the retired `services.brain.*` /
+  `services.agent.*` packages, and stage contracts no longer matched each other. `BOSRuntimeEngine`
+  also re-ran Plan/Policy/Execute inside later nodes, so one request could execute a side-effecting
+  step up to five times. Messaging adapters returned `success=True` without sending anything, and
+  the Adapter Router silently fell back to WhatsApp for unknown channels.
+
+### Accomplishments
+- **AI-native Runtime (ADR-008)**: Context now runs before Understand. Understanding uses the
+  `generate_text` capability with structured output, with no keyword matching. Each plan step is
+  evaluated against its capability's declared risk and the owner's Autopilot mode. Every stage runs
+  once. Only safe steps are retried. Replies are re-grounded on verified results.
+- **Providers**: Claude (default `claude-opus-5-5`, server-side refusal fallback) and Gemini
+  `text_generation` providers; SQL conversation memory in its own database; workspace records,
+  context, channel messaging and webhook event providers.
+- **Workspace business DB** (`backend/workspace/`): profile, contacts, tasks, approvals, activity,
+  encrypted connections, API keys, webhook subscriptions, Autopilot runs. Kept separate from memory.
+- **Runtime Gateway** (`backend/gateway/`): the single entrance for dashboard, channels, API, MCP
+  and Autopilot. It turns pending steps into approvals and verified steps into activity and events.
+- **Autopilot** (`backend/autopilot/`): scheduled proactive business reviews through the Runtime.
+- **Real channels**: Telegram Bot API, WhatsApp Cloud API, SMTP email. They fail honestly when not connected.
+- **HTTP API** (`backend/api/`): owner setup and auth, dashboard API, public `/v1` API with scoped
+  keys, Stripe-style signed webhooks, Telegram/WhatsApp inbound webhooks, MCP server at `/mcp`.
+- **Dashboard** (`frontend/`): React + TypeScript app with guided onboarding, Today briefing,
+  Assistant (owner and customer preview), Inbox, Approvals, Customers, Autopilot, Integrations and
+  Settings. Light, dark and mobile layouts.
+- **Deployment**: multi-stage `Dockerfile`, `docker-compose.yml` (optional PostgreSQL profile),
+  new `.env.example`, GitHub Actions CI. Legacy Neena deploy files moved to `legacy/deploy/`.
+- **Tests**: 18 end-to-end tests added (62 total passing).
+
+### Lessons Learned
+- A frozen core is only valuable if it runs. Freeze declarations need an executable smoke test.
+- "Success" from an integration must come from the external system, never from the adapter itself.
+
+---
+
 # Major Architecture Decisions
 
 - **Runtime owns execution**: AI reasoning generates plans; Runtime validates, authorizes, executes, and verifies every action.
@@ -191,6 +232,7 @@ Configuration, Secrets & Environment Framework (Sprint-11 Completed)
 - **Capability Framework Stabilization**: Removed 100% of `importlib` dynamic imports in the entire `backend/` codebase. Renamed legacy `base.py` to `legacy_base.py` to eliminate module collision with new `base/` package. Compatibility with Frozen Core maintained via standard re-export in `capabilities.base`.
 - **B.O.S. Architecture Convergence Audit**: Evaluated entire codebase structure, classifying 100% of files (reported in `docs/REPOSITORY_CONVERGENCE_REPORT.md`). Verified architecture compliance with automated validation tool (Architectural Score: 95/100, report in `ARCHITECTURE_REPORT.md`). Obsolete modules in `MODULE_REGISTRY.md` marked as RETIRED.
 - **Legacy Capability Elimination**: Removed all legacy capability files (`messaging.py`, `scheduling.py`, `memory.py`, `automation.py`) containing business-specific and radio-specific actions from the platform capability package. Archived all business logic code to `legacy/business_extract/`. Reduced `legacy_base.py` to the bare minimum compatibility registry required by the Frozen Core. B.O.S. Capability Framework is now 100% generic, pure, and ready for business module plug-ins in Sprint-13.
+- **AI-Native Runtime Activation (ADR-008)**: Context precedes Understanding; intent is understood by AI through capabilities; policy is per step using capability-declared risk (`read | safe | external | sensitive`) and the owner's Autopilot mode; all interfaces enter through the Runtime Gateway.
 
 
 ---

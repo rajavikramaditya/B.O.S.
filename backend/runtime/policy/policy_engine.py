@@ -93,6 +93,9 @@ class PolicyEngine:
             if step.risk == "unknown":
                 denied.append({"step_id": step.step_id, "reason": f"'{step.capability}.{step.action}' is not an available capability."})
                 continue
+            if step.risk == "read" and not PolicyEngine._role_may_read(role):
+                denied.append({"step_id": step.step_id, "reason": "Business records are not readable from this conversation."})
+                continue
             verdict = PolicyEngineV2.evaluate(
                 action=step.action,
                 params=step.params or {},
@@ -126,6 +129,11 @@ class PolicyEngine:
             pending_steps=pending,
             denied_steps=denied,
         )
+
+    @staticmethod
+    def _role_may_read(role: str) -> bool:
+        """Customers only ever see their own context, which the Runtime already provides."""
+        return role in ("owner", "employee", "system")
 
     @staticmethod
     def _role_may_act(role: str, risk: str) -> bool:

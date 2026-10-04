@@ -4,24 +4,23 @@ Business Operating System (B.O.S.)
 
 # Current Stage
 
-Architecture Migration — Post Core Freeze
+Launch Readiness — Platform Activated
 
 # Current Sprint
 
-Sprint-12.2 (Legacy Capability Elimination & Final Cleanup)
+Sprint-13 (Platform Activation & Launch Readiness)
 
 # Current Milestone
 
-Sprint-12.2 Completed (Moved all legacy capabilities `messaging.py`, `scheduling.py`, `memory.py`, `automation.py` to `legacy/business_extract/`, reduced `legacy_base.py` to the minimum compatibility contract for Frozen Core runtime, Capability Framework is 100% generic, all 41 tests passing)
+Sprint-13 Completed: the Runtime runs end to end with AI understanding, per-step policy and verification. The owner dashboard, channels (Telegram, WhatsApp, Email), public API, webhooks, MCP server, Autopilot and Docker deployment are in place. 62 tests passing.
 
 # Current Priority
 
-Transforming Neena AI Radio Manager into a generic Business Operating System
+First real deployment and a pilot with one business (real AI key, public https URL, one channel)
 
 # Repository Status
 
-New BOS repository initialized & connected to GitHub (`https://github.com/rajavikramaditya/B.O.S.`).  
-Legacy Neena project is the migration source.
+B.O.S. repository on GitHub (`https://github.com/rajavikramaditya/B.O.S.`). Legacy Neena project remains the migration source; its deploy files are archived in `legacy/deploy/`.
 
 # Completed
 
@@ -109,23 +108,35 @@ Legacy Neena project is the migration source.
 - TASK-075: Capability Framework Stabilization (`backend/capabilities/legacy_base.py`, 0 `importlib` usages in `backend/`, `docs/SPRINT_12_1_STABILIZATION_REPORT.md`)
 - TASK-076: B.O.S. Architecture Convergence Audit (`docs/REPOSITORY_CONVERGENCE_REPORT.md`, `ARCHITECTURE_REPORT.md`, updated legacy service registry to RETIRED)
 - TASK-077: Legacy Capability Elimination (`backend/capabilities/legacy_base.py` minimum compatibility bridge, legacy files archived to `legacy/business_extract/`)
+- TASK-078: Runtime activation (ADR-008): context before understanding, AI understanding via `generate_text`, per-step policy on declared risk + Autopilot mode, run-once engine, safe-only retry, grounded responses
+- TASK-079: AI providers: `ClaudeProvider`, `GeminiProvider` (`backend/providers/ai/`), keys from dashboard vault or env
+- TASK-080: Workspace business DB (`backend/workspace/`) and SQL conversation memory provider (separate store)
+- TASK-081: Core capabilities (`backend/capabilities/core/`): contacts, tasks, integration_events, business_context, conversation_memory
+- TASK-082: Runtime Gateway (`backend/gateway/`) and Autopilot proactive reviews + scheduler (`backend/autopilot/`)
+- TASK-083: Real channel adapters: Telegram, WhatsApp Cloud API, SMTP email; no silent fallback in `AdapterRouter`
+- TASK-084: HTTP API (`backend/api/`): owner setup/auth, dashboard API, public `/v1`, signed webhooks, channel webhooks, MCP server
+- TASK-085: Owner dashboard (`frontend/`): onboarding, Today, Assistant, Inbox, Approvals, Customers, Autopilot, Integrations, Settings
+- TASK-086: Deployment: multi-stage `Dockerfile`, `docker-compose.yml`, `.env.example`, CI workflow, `README.md`
+- TASK-087: End-to-end platform tests (`backend/tests/test_platform_api.py`)
 
 # In Progress
 
-- Business Module Extraction (Sprint-13: Radio Module, Provider extraction)
-- AI Manager Module Scoping (Sprint-15+)
+- None
 
 # Blockers
 
-None
+- First deployment needs owner approval and owner-provided values: Claude or Gemini API key, a public https domain (`PUBLIC_BASE_URL`), and channel credentials.
+- The Docker image build has not been verified yet (no Docker daemon in the dev sandbox). Its build steps were verified separately, and the CI `image` job builds it.
 
 # Next Tasks
 
-1. Sprint-13: Radio Business Module (migrate `services/broadcast/`, `services/content/`, `services/tools/live_ops/`)
-2. Sprint-13: Provider Layer (GeminiProvider, AzuraCastProvider, ElevenLabsProvider, PostgresMemoryProvider)
-3. Sprint-14: CRM Module (CustomerModule)
-4. Sprint-15+: AI Manager Module (migrate `services/brain/brain.py`, `services/agent/`)
-5. Real Infrastructure Integration Tests
+1. Deploy to a server with https (owner approval required) and connect a real AI key + Telegram
+2. Pilot with one real business; tune the operating prompts from real conversations
+3. Website chat widget (embeddable `<script>` using `/v1/messages`)
+4. Calendar/booking and payments capabilities (via business modules)
+5. Multi-user workspaces (staff roles) and multi-tenant hosting
+6. RETIRE keyword-based `IntentClassifier` and B-01 recency cache once nothing references them
+7. Sprint-13 legacy plan (Radio Business Module, AzuraCast/ElevenLabs providers) as an installable module
 
 # Current Goal
 

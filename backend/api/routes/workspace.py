@@ -61,7 +61,7 @@ def _memory(action: str, params: Dict[str, Any]) -> Dict[str, Any]:
 
 @router.get("/dashboard")
 def dashboard() -> Dict[str, Any]:
-    conversations = _memory("list_conversations", {"limit": 6})
+    conversations = _memory("list_conversations", {"limit": 5, "actor": ["customer", "employee"]})
     return {
         "profile": SettingsStore.get(BUSINESS_PROFILE),
         "autopilot": {**SettingsStore.get(AUTOPILOT), "latest": AutopilotEngine.latest()},
@@ -73,7 +73,7 @@ def dashboard() -> Dict[str, Any]:
         },
         "approvals": ApprovalRepository.list("pending", limit=5),
         "tasks": TaskRepository.list("open", limit=6),
-        "conversations": [c for c in conversations.get("conversations", []) if c["actor"] in ("customer", "employee")][:5],
+        "conversations": conversations.get("conversations", []),
         "activity": ActivityLog.recent(15),
         "setup": setup_checklist(),
     }
