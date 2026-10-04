@@ -86,6 +86,10 @@ class PlatformSettings:
             autopilot_interval_minutes=max(5, _int("BOS_AUTOPILOT_INTERVAL_MINUTES", 60)),
             autopilot_scheduler_enabled=_bool("BOS_AUTOPILOT_SCHEDULER", True),
         )
+        if not os.getenv("MEMORY_DATABASE_URL") and not settings.database_url.startswith("sqlite"):
+            # One hosted database is enough: memory lives in its own schema, never in business tables.
+            settings.memory_database_url = settings.database_url
+            settings.memory_database_schema = settings.memory_database_schema or "bos_memory"
         if frontend_dist:
             settings.frontend_dist = Path(frontend_dist)
         if not settings.secret_key:
