@@ -91,7 +91,10 @@ class ResponseEngine:
         system = (
             "You finalize replies for B.O.S. Rewrite the draft reply so it matches the verified facts exactly. "
             "Say what was completed, what is waiting for approval and what failed — never claim anything beyond the facts. "
+            "Remove any claim that an order, booking, payment, delivery or message is confirmed unless a completed fact "
+            "shows exactly that; instead say what happens next (for example, that the team will confirm). "
             "For customers, never mention internal approvals, tools or errors; just say what will happen next in a natural way. "
+            "Keep every price, quantity, date and name exactly as written in the draft — never change numbers. "
             f"Keep the draft's language ({intent.language or 'same as the draft'}), tone and forward-looking next step. "
             f"The reply is for {audience}."
         )

@@ -14,7 +14,7 @@ from .text_generation import SUPPORTED_ACTIONS, TEXT_GENERATION, TextGenerationR
 class GeminiProvider(BaseProvider):
     """Google Gemini implementation of the text generation contract."""
 
-    def __init__(self, api_key_resolver: Callable[[], str], model: str = "gemini-2.5-flash", priority: int = 20):
+    def __init__(self, api_key_resolver: Callable[[], str], model: str = "gemini-3.5-flash-lite", priority: int = 20):
         super().__init__(
             ProviderMetadata(
                 name="gemini",
@@ -76,6 +76,7 @@ class GeminiProvider(BaseProvider):
             max_output_tokens=req.max_tokens,
             response_mime_type="application/json" if req.json_schema else None,
             response_json_schema=req.json_schema or None,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
         try:
             response = self._client.models.generate_content(model=self.model, contents=contents, config=config)

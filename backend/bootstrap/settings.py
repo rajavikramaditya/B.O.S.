@@ -44,7 +44,7 @@ class PlatformSettings:
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-opus-5-5"
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
 
     autopilot_interval_minutes: int = 60
     autopilot_scheduler_enabled: bool = True
@@ -72,7 +72,7 @@ class PlatformSettings:
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             anthropic_model=os.getenv("BOS_CLAUDE_MODEL", "claude-opus-5-5"),
             gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
-            gemini_model=os.getenv("BOS_GEMINI_MODEL", "gemini-2.5-flash"),
+            gemini_model=os.getenv("BOS_GEMINI_MODEL", "gemini-3.5-flash-lite"),
             autopilot_interval_minutes=max(5, _int("BOS_AUTOPILOT_INTERVAL_MINUTES", 60)),
             autopilot_scheduler_enabled=_bool("BOS_AUTOPILOT_SCHEDULER", True),
         )

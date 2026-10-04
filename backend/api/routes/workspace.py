@@ -115,7 +115,12 @@ def chat(body: ChatMessage) -> Dict[str, Any]:
     """Talk to B.O.S. as the owner, or preview exactly what a customer would experience."""
     if body.as_customer:
         conversation_id = body.conversation_id or f"preview:{uuid.uuid4().hex[:10]}"
+        # A preview behaves like a real channel: the "customer" is a known contact.
+        actor_ref = RuntimeGateway.identify_contact(
+            channel="preview", external_id=conversation_id, name=body.customer_name or "Preview customer"
+        )
         result = RuntimeGateway.submit(
+            actor_ref=actor_ref,
             role="customer",
             message=body.message,
             channel="preview",
