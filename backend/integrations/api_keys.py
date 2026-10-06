@@ -19,6 +19,7 @@ from workspace.models import ApiKey
 # records:write — save contacts
 # events        — report external events (/v1/events)
 SCOPES = ("runtime", "operator", "records:read", "records:write", "events")
+DEFAULT_SCOPES = ("runtime",)  # least privilege: a key meant for a website can only send customer messages
 KEY_PREFIX = "bos_live_"
 
 
@@ -42,7 +43,7 @@ class ApiKeyService:
     @staticmethod
     def create(name: str, scopes: List[str]) -> Dict[str, Any]:
         raw = f"{KEY_PREFIX}{secrets.token_urlsafe(32)}"
-        valid = [s for s in scopes if s in SCOPES] or list(SCOPES)
+        valid = [s for s in dict.fromkeys(scopes) if s in SCOPES] or list(DEFAULT_SCOPES)
         with WorkspaceDatabase.session() as db:
             key = ApiKey(name=name or "API key", prefix=raw[:16], key_hash=_hash(raw), scopes=valid)
             db.add(key)

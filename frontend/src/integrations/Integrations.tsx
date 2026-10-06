@@ -148,16 +148,32 @@ function Developer() {
   );
 }
 
+const SCOPE_HELP: Record<string, string> = {
+  runtime: "Customer messages. Safe for a website chat.",
+  operator: "Act as staff: /v1/actions and the MCP server.",
+  "records:read": "Read contacts and tasks.",
+  "records:write": "Save contacts and tasks.",
+  events: "Report external events.",
+};
+
 function ApiKeys() {
   const notify = useToast();
-  const { data, reload } = useResource<{ keys: ApiKey[]; scopes: string[] }>("/api/developer/keys");
+  const { data, reload } = useResource<{ keys: ApiKey[]; scopes: string[]; default_scopes: string[] }>("/api/developer/keys");
   const [name, setName] = useState("");
+  const [picked, setPicked] = useState<string[] | null>(null);
   const [created, setCreated] = useState<ApiKey | null>(null);
+  const scopes = picked ?? data?.default_scopes ?? ["runtime"];
+  const toggle = (s: string) => setPicked(scopes.includes(s) ? scopes.filter((x) => x !== s) : [...scopes, s]);
 
   const create = async () => {
+    if (!scopes.length) {
+      notify("Pick at least one permission for this key.", true);
+      return;
+    }
     try {
-      setCreated(await api<ApiKey>("/api/developer/keys", "POST", { name: name || "API key", scopes: data?.scopes }));
+      setCreated(await api<ApiKey>("/api/developer/keys", "POST", { name: name || "API key", scopes }));
       setName("");
+      setPicked(null);
       reload();
     } catch (e) {
       notify((e as Error).message, true);
@@ -178,12 +194,21 @@ function ApiKeys() {
         <input className="input" placeholder="Key name, e.g. Website chat" value={name} onChange={(e) => setName(e.target.value)} />
         <button className="btn btn-primary" onClick={create}>Create</button>
       </div>
+      <div className="stack-sm">
+        <div className="tiny faint">Permissions. Give each key only what it needs.</div>
+        <div className="chips">
+          {(data?.scopes ?? []).map((s) => (
+            <button key={s} type="button" className="chip" aria-pressed={scopes.includes(s)} title={SCOPE_HELP[s]} onClick={() => toggle(s)}>{s}</button>
+          ))}
+        </div>
+        <div className="tiny faint">{scopes.map((s) => SCOPE_HELP[s]).filter(Boolean).join(" ")}</div>
+      </div>
       <div className="list">
         {active.map((k) => (
           <div key={k.id} className="list-item">
             <div className="list-item-main">
               <div className="list-item-title">{k.name}</div>
-              <div className="list-item-sub"><code>{k.prefix}…</code> · {k.last_used_at ? `used ${timeAgo(k.last_used_at)}` : "never used"}</div>
+              <div className="list-item-sub"><code>{k.prefix}…</code> · {k.scopes.join(", ")} · {k.last_used_at ? `used ${timeAgo(k.last_used_at)}` : "never used"}</div>
             </div>
             <button className="btn btn-icon btn-sm" aria-label="Revoke" onClick={() => revoke(k)}><Trash2 size={14} /></button>
           </div>

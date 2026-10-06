@@ -433,3 +433,13 @@ def test_autopilot_only_adds_tasks_unattended(platform_app, owner, ai):
     assert [s["title"] for s in run["executed"]] == ["Follow up"]
     assert len(run["pending_approvals"]) == 2
     assert ContactRepository.get(other["id"])["stage"] == "lead"
+
+
+def test_new_keys_default_to_least_privilege(platform_app, owner, ai):
+    key = platform_app.post("/api/developer/keys", json={"name": "Website chat"}, headers=owner).json()
+    assert key["scopes"] == ["runtime"]
+    headers = {"Authorization": f"Bearer {key['key']}"}
+    assert platform_app.post("/v1/actions", json={"plan": [{"capability": "tasks", "action": "list_tasks"}]}, headers=headers).status_code == 403
+    assert platform_app.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, headers=headers).status_code == 403
+    junk = platform_app.post("/api/developer/keys", json={"name": "X", "scopes": ["admin"]}, headers=owner).json()
+    assert junk["scopes"] == ["runtime"]

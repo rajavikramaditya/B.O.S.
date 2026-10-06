@@ -88,7 +88,7 @@ add follow-up tasks. Changing contacts, closing tasks or emitting events from a 
 
 ## Integrations
 
-**REST API.** Create a key in *Integrations → Developer*, then:
+**REST API.** Create a key in *Integrations → Developer* (new keys get only the `runtime` scope unless you pick more), then:
 
 ```bash
 curl -X POST http://localhost:8000/v1/messages \

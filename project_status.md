@@ -12,7 +12,7 @@ Sprint-13 (Platform Activation & Launch Readiness)
 
 # Current Milestone
 
-Sprint-13 Completed: the Runtime runs end to end with AI understanding, per-step policy and verification. The owner dashboard, channels (Telegram and WhatsApp inbound, SMTP outbound email), public API, webhooks, MCP server, Autopilot and Docker deployment are in place. Security review hardening (scoped API keys enforced in the Runtime, namespaced identities, self-service field limits, Autopilot grants, signed and size-capped channel webhooks) is done. 80 tests passing.
+Sprint-13 Completed: the Runtime runs end to end with AI understanding, per-step policy and verification. The owner dashboard, channels (Telegram and WhatsApp inbound, SMTP outbound email), public API, webhooks, MCP server, Autopilot and Docker deployment are in place. Security review hardening (scoped API keys enforced in the Runtime, namespaced identities, self-service field limits, Autopilot grants, signed and size-capped channel webhooks) is done. 81 tests passing.
 
 # Current Priority
 
@@ -26,7 +26,7 @@ B.O.S. repository on GitHub (`https://github.com/rajavikramaditya/B.O.S.`). Lega
 
 - Sprint-13: the platform is activated end to end (Runtime with AI understanding, per-step policy and verification; owner dashboard; Telegram and WhatsApp inbound channels, SMTP outbound email; public API, signed webhooks and MCP server; Autopilot; Docker image and CI).
 - Deployed on Render (web service plus Postgres) at `bos.orbitcore.in`, from branch `claude/nifty-shannon-5t1q7w`.
-- Security review hardening on PR #1: scoped API keys enforced inside the Runtime, namespaced conversations and identities, customer self-service field limits, Autopilot grants, signed and size-capped channel webhooks. 80 tests passing.
+- Security review hardening on PR #1: scoped API keys enforced inside the Runtime, namespaced conversations and identities, customer self-service field limits, Autopilot grants, signed and size-capped channel webhooks, least-privilege API keys. 81 tests passing.
 - The full task log is in `project_history.md`.
 
 # In Progress

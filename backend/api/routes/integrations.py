@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 from adapters.messaging.telegram_adapter import TelegramAdapter
 from bootstrap.platform import Platform
-from integrations.api_keys import SCOPES, ApiKeyService
+from integrations.api_keys import DEFAULT_SCOPES, SCOPES, ApiKeyService
 from integrations.catalog import CONNECTORS, get_connector
 from integrations.connections import ConnectionStore
 from integrations.webhooks import EVENT_TYPES, WebhookDispatcher
@@ -28,7 +28,7 @@ class ConnectBody(BaseModel):
 
 class ApiKeyBody(BaseModel):
     name: str = Field(min_length=1, max_length=120)
-    scopes: List[str] = Field(default_factory=lambda: list(SCOPES))
+    scopes: List[str] = Field(default_factory=lambda: list(DEFAULT_SCOPES))
 
 
 class WebhookBody(BaseModel):
@@ -124,7 +124,7 @@ def disconnect(connector_id: str) -> Dict[str, Any]:
 
 @router.get("/developer/keys")
 def list_keys() -> Dict[str, Any]:
-    return {"keys": ApiKeyService.list(), "scopes": list(SCOPES)}
+    return {"keys": ApiKeyService.list(), "scopes": list(SCOPES), "default_scopes": list(DEFAULT_SCOPES)}
 
 
 @router.post("/developer/keys")
