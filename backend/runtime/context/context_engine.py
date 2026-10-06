@@ -1,7 +1,13 @@
-"""B.O.S. Context Engine v0.1
+"""B.O.S. Context Engine v1.0
 
-Stage 3 of Runtime Lifecycle: Loads relevant memory, live snapshot, and system context.
+Stage 2 of Runtime Lifecycle (ADR-008): Loads memory, business profile, live snapshot
+and the capability catalog before the request is interpreted.
+
+The B-01 recency cache below is kept for compatibility (KEEP). It only runs when an
+intent is passed in; the AI Understanding stage now resolves references from history.
 """
+
+from typing import Optional
 
 from ..contracts import NormalizedRequest, BusinessIntent, RuntimeContext
 
@@ -49,7 +55,7 @@ class ContextEngine:
         return cls._recency_cache.get(key, value)
 
     @classmethod
-    def load_context(cls, request: NormalizedRequest, intent: BusinessIntent) -> RuntimeContext:
+    def load_context(cls, request: NormalizedRequest, intent: Optional[BusinessIntent] = None) -> RuntimeContext:
         # Update recency cache with concrete entities
         if intent and intent.entities:
             for k, v in list(intent.entities.items()):
@@ -90,35 +96,50 @@ class ContextEngine:
                     resolved = cls._resolve_pronoun(k, str(v))
                     intent.slots[k] = resolved
 
-        if request.role != "owner":
-            return RuntimeContext(entity_recency_cache=dict(cls._recency_cache))
+        return cls._load_business_context(request)
 
-        import services.brain.context_builder as context_builder
-        import services.brain.live_state_snapshot as live_state_snapshot
+    @classmethod
+    def _load_business_context(cls, request: NormalizedRequest) -> RuntimeContext:
+        """Assemble memory, business profile, live snapshot and the plannable capability catalog.
 
-        try:
-            mem_str = context_builder.build_context_block()
-        except Exception:
-            mem_str = ""
+        Everything is fetched through capabilities, so the Runtime never touches a store directly.
+        """
+        from capabilities.base.capability_context import CapabilityContext
+        from capabilities.resolver import CapabilityResolver
+        from ..cognition import RuntimeCognition
 
-        try:
-            live_snap = live_state_snapshot.build_neena_live_state_snapshot()
-        except Exception:
-            live_snap = {}
+        ctx = CapabilityContext(module_id="runtime", correlation_id=request.request_id)
 
-        prefs = {}
-        try:
-            import services.brain.manager_state as manager_state
-            if hasattr(manager_state, "get_manager_state"):
-                prefs = manager_state.get_manager_state()
-        except Exception:
-            pass
+        history = []
+        if request.conversation_id:
+            mem = CapabilityResolver.execute(
+                "conversation_memory", "history", {"conversation_id": request.conversation_id, "limit": 24}, ctx
+            )
+            if mem.success:
+                history = mem.data.get("messages", [])
+
+        profile, snapshot, mode = {}, {}, "autopilot"
+        biz = CapabilityResolver.execute("business_context", "snapshot", {}, ctx)
+        if biz.success:
+            profile = biz.data.get("profile", {})
+            snapshot = biz.data.get("snapshot", {})
+            mode = biz.data.get("autopilot_mode", mode)
+
+        actor_profile = {}
+        if request.actor_ref:
+            found = CapabilityResolver.execute("contacts", "find_contact", {"id": request.actor_ref}, ctx)
+            if found.success:
+                actor_profile = found.data.get("contact") or {}
 
         return RuntimeContext(
-            memory_packet={},
-            memory_context=mem_str or "",
-            live_snapshot=live_snap if isinstance(live_snap, dict) else {},
-            owner_preferences=prefs if isinstance(prefs, dict) else {},
+            memory_packet={"history_messages": len(history)},
+            live_snapshot=snapshot,
+            owner_preferences={"autopilot_mode": mode} if request.role == "owner" else {},
             entity_recency_cache=dict(cls._recency_cache),
+            business_profile=profile,
+            business_snapshot=snapshot,
+            conversation_history=history,
+            capability_catalog=RuntimeCognition.capability_catalog(),
+            actor_profile=actor_profile,
+            autopilot_mode=mode,
         )
-

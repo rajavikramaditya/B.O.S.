@@ -1,0 +1,14 @@
+.git
+.github
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+frontend/dist
+data
+legacy
+docs
+LangGraph architecture
+.env
+.env.*
+!.env.example

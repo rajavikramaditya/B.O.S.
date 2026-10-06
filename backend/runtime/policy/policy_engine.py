@@ -72,24 +72,100 @@ class PolicyEngineV2:
 
 
 class PolicyEngine:
-    """Stage 6 Lifecycle wrapper delegating to PolicyEngineV2."""
+    """Stage 6 Lifecycle wrapper: evaluates every plan step independently.
+
+    Steps are split into allowed (run now), pending (wait for a human) and denied.
+    """
 
     @staticmethod
-    def validate_policy(plan, context) -> Any:
+    def validate_policy(
+        plan, context, role: str | None = None, raw_text: str = "", actor_ref: str = "", grants: list | None = None
+    ) -> Any:
+        from ..cognition import RuntimeCognition
         from ..contracts import PolicyDecision
 
         if not plan or not plan.steps:
-            return PolicyDecision(status="ALLOW", action="none", protected=False)
+            return PolicyDecision(status="ALLOW", action="none", reason="No steps planned.", protected=False)
 
-        first_step = plan.steps[0]
-        action = first_step.action
+        if role is None:
+            role = "owner" if context and getattr(context, "owner_preferences", None) else "customer"
+        mode = getattr(context, "autopilot_mode", "autopilot") if context else "autopilot"
 
-        role = "customer"
-        if context and hasattr(context, "owner_preferences") and context.owner_preferences:
-            role = "owner"
+        allowed, pending, denied = [], [], []
+        for step in plan.steps:
+            if step.risk == "unknown":
+                denied.append({"step_id": step.step_id, "reason": f"'{step.capability}.{step.action}' is not an available capability."})
+                continue
+            if step.risk == "read" and not PolicyEngine._role_may_read(role):
+                denied.append({"step_id": step.step_id, "reason": "Business records are not readable from this conversation."})
+                continue
+            if not plan.preapproved and not PolicyEngine._granted(grants, step):
+                if step.risk == "read":
+                    denied.append({"step_id": step.step_id, "reason": f"This caller may not read '{step.capability}'."})
+                else:
+                    pending.append(step)  # outside the caller's grant: the owner decides
+                continue
+            if role == "customer" and step.risk == "safe" and not plan.preapproved:
+                # Untrusted actors may only change their own record; anything else waits for the owner.
+                pin = RuntimeCognition.self_service_param(step.capability, step.action)
+                if not pin or not actor_ref:
+                    pending.append(step)
+                    continue
+                fields = RuntimeCognition.self_service_fields(step.capability, step.action)
+                kept = {k: v for k, v in (step.params or {}).items() if k in fields}
+                step.params = {**kept, pin: actor_ref}
+            verdict = PolicyEngineV2.evaluate(
+                action=step.action,
+                params=step.params or {},
+                role=role,
+                raw_text=raw_text,
+                permissions=[step.action],
+            )
+            if verdict["status"] in ("DENY", "ESCALATE") and not (
+                verdict["status"] == "ESCALATE" and step.risk in ("external", "sensitive")
+            ):
+                denied.append({"step_id": step.step_id, "reason": verdict.get("reason", "Policy denied.")})
+            elif verdict["status"] in ("CONFIRM", "ESCALATE"):
+                pending.append(step)
+            elif not plan.preapproved and (
+                ApprovalPolicy.requires_human(step.risk, mode) or not PolicyEngine._role_may_act(role, step.risk)
+            ):
+                pending.append(step)
+            else:
+                allowed.append(step)
 
-        return PolicyEngineV2.evaluate_request(
-            action=action,
-            params=first_step.params or {},
-            role=role,
+        status = "ALLOW" if not pending and not denied else ("CONFIRM" if pending else "PARTIAL")
+        if not allowed and not pending and denied:
+            status = "DENY"
+        return PolicyDecision(
+            status=status,
+            action=plan.steps[0].action,
+            reason=f"{len(allowed)} allowed, {len(pending)} awaiting approval, {len(denied)} denied.",
+            protected=bool(pending),
+            requires_confirmation=bool(pending),
+            allowed_steps=allowed,
+            pending_steps=pending,
+            denied_steps=denied,
         )
+
+    @staticmethod
+    def _granted(grants: list | None, step: Any) -> bool:
+        if grants is None:
+            return True
+        return (
+            step.capability in grants
+            or f"{step.capability}.{step.action}" in grants
+            or (step.risk == "read" and f"{step.capability}:read" in grants)
+        )
+
+    @staticmethod
+    def _role_may_read(role: str) -> bool:
+        """Customers only ever see their own context, which the Runtime already provides."""
+        return role in ("owner", "employee", "system")
+
+    @staticmethod
+    def _role_may_act(role: str, risk: str) -> bool:
+        """Owners and the platform may act directly; others run read/safe steps and request the rest."""
+        if role in ("owner", "system"):
+            return True
+        return risk in ("read", "safe")

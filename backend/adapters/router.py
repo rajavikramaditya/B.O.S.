@@ -71,8 +71,7 @@ class AdapterRouter:
                 adapter = AdapterRegistry.get("payments")
             elif "doc" in action_lower or "file" in action_lower:
                 adapter = AdapterRegistry.get("storage")
-            else:
-                adapter = AdapterRegistry.get("whatsapp")
+            # No silent fallback: an unknown channel must fail loudly, never fake delivery.
 
         if not adapter:
             return AdapterResponse(

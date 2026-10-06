@@ -1,41 +1,45 @@
-"""B.O.S. Telegram Messaging Adapter v0.1
+"""B.O.S. Telegram Messaging Adapter v1.0
 
-Adapter connecting platform messaging capabilities to Telegram Bot API.
+Delivers messages through the Telegram Bot API.
+Credentials: {bot_token}
 """
 
-from typing import Any, Dict
-from ..base_adapter import BaseAdapter
-from ..adapter_contracts import AdapterRequest, AdapterResponse, AdapterStatus
+from typing import Any, Dict, Optional
+
+import httpx
+
+from .channel_adapter import ChannelAdapter, CredentialsResolver
+
+TELEGRAM_API = "https://api.telegram.org"
 
 
-class TelegramAdapter(BaseAdapter):
-    """Adapter for Telegram messaging integration."""
+class TelegramAdapter(ChannelAdapter):
+    required_fields = ("bot_token",)
 
-    def __init__(self, name: str = "telegram"):
-        super().__init__(name=name, channel_type="messaging")
+    def __init__(self, name: str = "telegram", credentials: Optional[CredentialsResolver] = None):
+        super().__init__(name=name, credentials=credentials)
 
-    def connect(self) -> bool:
-        self.status = AdapterStatus.CONNECTED
-        return True
-
-    def disconnect(self) -> bool:
-        self.status = AdapterStatus.DISCONNECTED
-        return True
-
-    def health_check(self) -> Dict[str, Any]:
-        return {"adapter": self.name, "status": self.status, "reachable": True}
-
-    def execute_request(self, request: AdapterRequest) -> AdapterResponse:
-        chat_id = request.recipient
-        msg = request.payload.get("text") or request.payload.get("message", "")
-
-        return AdapterResponse(
-            success=True,
-            status=self.status,
-            data={
-                "channel": "telegram",
-                "chat_id": chat_id,
-                "sent_message": msg,
-                "provider_ref": f"tg_msg_{request.request_id}",
-            },
+    def deliver(self, creds: Dict[str, Any], recipient: str, text: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        resp = httpx.post(
+            f"{TELEGRAM_API}/bot{creds['bot_token']}/sendMessage",
+            json={"chat_id": recipient, "text": text[:4096]},
+            timeout=20.0,
         )
+        body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+        if resp.status_code != 200 or not body.get("ok"):
+            raise RuntimeError(body.get("description") or f"HTTP {resp.status_code}")
+        return {"provider_ref": str(body.get("result", {}).get("message_id", ""))}
+
+    @staticmethod
+    def register_webhook(bot_token: str, url: str, secret_token: str) -> Dict[str, Any]:
+        resp = httpx.post(
+            f"{TELEGRAM_API}/bot{bot_token}/setWebhook",
+            json={"url": url, "secret_token": secret_token, "allowed_updates": ["message"]},
+            timeout=20.0,
+        )
+        return resp.json()
+
+    @staticmethod
+    def verify_token(bot_token: str) -> Dict[str, Any]:
+        resp = httpx.get(f"{TELEGRAM_API}/bot{bot_token}/getMe", timeout=15.0)
+        return resp.json()

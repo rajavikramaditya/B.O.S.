@@ -1,42 +1,38 @@
-"""B.O.S. WhatsApp Messaging Adapter v0.1
+"""B.O.S. WhatsApp Messaging Adapter v1.0
 
-Adapter connecting platform messaging capabilities to WhatsApp gateway services.
+Delivers messages through the WhatsApp Business Cloud API (Meta).
+Credentials: {access_token, phone_number_id}
 """
 
-from typing import Any, Dict
-from ..base_adapter import BaseAdapter
-from ..adapter_contracts import AdapterRequest, AdapterResponse, AdapterStatus
+from typing import Any, Dict, Optional
+
+import httpx
+
+from .channel_adapter import ChannelAdapter, CredentialsResolver
+
+GRAPH_API = "https://graph.facebook.com/v21.0"
 
 
-class WhatsAppAdapter(BaseAdapter):
-    """Adapter for WhatsApp messaging integration."""
+class WhatsAppAdapter(ChannelAdapter):
+    required_fields = ("access_token", "phone_number_id")
 
-    def __init__(self, name: str = "whatsapp"):
-        super().__init__(name=name, channel_type="messaging")
+    def __init__(self, name: str = "whatsapp", credentials: Optional[CredentialsResolver] = None):
+        super().__init__(name=name, credentials=credentials)
 
-    def connect(self) -> bool:
-        self.status = AdapterStatus.CONNECTED
-        return True
-
-    def disconnect(self) -> bool:
-        self.status = AdapterStatus.DISCONNECTED
-        return True
-
-    def health_check(self) -> Dict[str, Any]:
-        return {"adapter": self.name, "status": self.status, "reachable": True}
-
-    def execute_request(self, request: AdapterRequest) -> AdapterResponse:
-        recipient = request.recipient
-        msg = request.payload.get("text") or request.payload.get("message", "")
-
-        # Adapter translation logic
-        return AdapterResponse(
-            success=True,
-            status=self.status,
-            data={
-                "channel": "whatsapp",
-                "recipient": recipient,
-                "sent_message": msg,
-                "provider_ref": f"wa_msg_{request.request_id}",
+    def deliver(self, creds: Dict[str, Any], recipient: str, text: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        resp = httpx.post(
+            f"{GRAPH_API}/{creds['phone_number_id']}/messages",
+            headers={"Authorization": f"Bearer {creds['access_token']}"},
+            json={
+                "messaging_product": "whatsapp",
+                "to": recipient.lstrip("+"),
+                "type": "text",
+                "text": {"body": text[:4096]},
             },
+            timeout=20.0,
         )
+        body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+        if resp.status_code >= 300:
+            raise RuntimeError(body.get("error", {}).get("message") or f"HTTP {resp.status_code}")
+        messages = body.get("messages") or [{}]
+        return {"provider_ref": str(messages[0].get("id", ""))}

@@ -1,27 +1,24 @@
-"""B.O.S. Capability Engine v0.1
+"""B.O.S. Capability Engine v1.0
 
-Stage 7 of Runtime Lifecycle: Maps plan steps to platform capabilities.
+Stage 7 of Runtime Lifecycle: Maps policy-approved plan steps to registered capabilities.
 """
 
-from .contracts import ExecutionPlan, CapabilitySelection
+from .contracts import CapabilitySelection, ExecutionPlan, PolicyDecision
 
 
 class CapabilityEngine:
-    """Selects platform capabilities for approved execution plans."""
+    """Selects platform capabilities for approved execution steps."""
 
     @staticmethod
-    def select_capabilities(plan: ExecutionPlan) -> CapabilitySelection:
-        from capabilities.base import CapabilityRegistry
+    def select_capabilities(plan: ExecutionPlan, policy: PolicyDecision | None = None) -> CapabilitySelection:
+        from capabilities.registry import RuntimeCapabilityRegistry
 
-        selected_caps = []
-        mappings = {}
-        for step in plan.steps:
-            cap_instance = CapabilityRegistry.resolve_capability_for_action(step.action)
-            cap_name = cap_instance.name if cap_instance else step.capability
-            selected_caps.append(cap_name)
-            mappings[cap_name] = step.action
-
-        return CapabilitySelection(
-            selected_capabilities=selected_caps,
-            mappings=mappings,
-        )
+        steps = policy.allowed_steps if policy is not None else plan.steps
+        selected, mappings = [], {}
+        for step in steps:
+            cap = RuntimeCapabilityRegistry.get(step.capability)
+            if cap is None:
+                continue
+            selected.append(cap.name)
+            mappings[str(step.step_id)] = {"capability": cap.name, "action": step.action, "version": cap.version}
+        return CapabilitySelection(selected_capabilities=selected, mappings=mappings)

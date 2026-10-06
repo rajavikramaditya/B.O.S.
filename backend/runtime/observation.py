@@ -1,12 +1,14 @@
-"""B.O.S. Observation Engine v0.1
+"""B.O.S. Observation Engine v1.0
 
 Stage 1 of Runtime Lifecycle: Normalizes incoming inputs into a unified NormalizedRequest object.
 """
 
 import time
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from .contracts import NormalizedRequest, ActorRole
+
+KNOWN_ROLES = ("owner", "customer", "employee", "system")
 
 
 class ObservationEngine:
@@ -22,11 +24,12 @@ class ObservationEngine:
         phone: str = "",
         channel: str = "command_center",
         raw_payload: Dict[str, Any] | None = None,
+        conversation_id: str = "",
+        actor_ref: str = "",
+        grants: Optional[List[str]] = None,
     ) -> NormalizedRequest:
-        role_clean: ActorRole = "customer"
         role_str = (role or "customer").strip().lower()
-        if role_str in ("owner", "customer", "employee"):
-            role_clean = role_str  # type: ignore
+        role_clean: ActorRole = role_str if role_str in KNOWN_ROLES else "customer"  # type: ignore[assignment]
 
         req_id = f"req_{uuid.uuid4().hex[:12]}"
         return NormalizedRequest(
@@ -39,4 +42,7 @@ class ObservationEngine:
             phone=phone or "",
             timestamp=time.time(),
             raw_payload=raw_payload or {},
+            conversation_id=conversation_id or f"{channel or 'runtime'}:{req_id}",
+            actor_ref=actor_ref or "",
+            grants=list(grants) if grants is not None else None,
         )
