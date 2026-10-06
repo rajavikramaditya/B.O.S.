@@ -10,7 +10,7 @@ import json
 from typing import Any, Callable, Dict, Optional
 
 from gateway.runtime_gateway import RuntimeGateway
-from integrations.api_keys import key_conversation_id
+from integrations.api_keys import grants_for_scopes, key_conversation_id
 from runtime.cognition import RuntimeCognition
 from workspace.approvals import ApprovalRepository
 from workspace.records import ContactRepository, TaskRepository
@@ -69,6 +69,7 @@ class McpServer:
         self.client_name = client_name
         self.client_id = client_id
         self.can_read_records = "records:read" in scopes
+        self.grants = grants_for_scopes(scopes)
 
     def tools(self) -> list:
         return [t for t in TOOLS if self.can_read_records or t["name"] not in self.READ_TOOLS]
@@ -114,6 +115,7 @@ class McpServer:
                 conversation_id=key_conversation_id(self.client_id, args.get("conversation_id") or "default", "mcp"),
                 sender_name=self.client_name,
                 source=f"mcp:{self.client_name}",
+                grants=self.grants,
             )
             payload: Any = {
                 "reply": result.get("reply"),
@@ -137,6 +139,7 @@ class McpServer:
                 sender_name=self.client_name,
                 raw_payload={"plan": [step]},
                 source=f"mcp:{self.client_name}",
+                grants=self.grants,
             )
             payload = {
                 "executed": result.get("executed_steps"),

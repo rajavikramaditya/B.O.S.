@@ -318,3 +318,47 @@ def test_setup_token_protects_first_run(tmp_path, monkeypatch):
         assert client.post("/api/setup/owner", json=body).status_code == 403
         assert client.post("/api/setup/owner", json={**body, "setup_token": "let-me-in"}).status_code == 200
     _reset_registries()
+
+
+def test_key_scopes_are_enforced_inside_the_runtime(platform_app, owner, ai):
+    ContactRepository.upsert({"name": "Private", "phone": "+913333333333"})
+    op = _api_key(platform_app, owner, ["operator"])
+    headers = {"Authorization": f"Bearer {op['key']}"}
+    read = platform_app.post("/v1/actions", json={"plan": [{"capability": "contacts", "action": "list_contacts"}]}, headers=headers).json()
+    assert read["executed_steps"] == [] and read["denied_steps"]
+    write = platform_app.post("/v1/actions", json={"plan": [{"capability": "tasks", "action": "create_task", "params": {"title": "x"}}]}, headers=headers).json()
+    assert write["executed_steps"] == [] and len(write["approvals"]) == 1  # outside the grant: owner decides
+
+    rw = _api_key(platform_app, owner, ["operator", "records:write"])
+    ok = platform_app.post(
+        "/v1/actions",
+        json={"plan": [{"capability": "tasks", "action": "create_task", "params": {"title": "y"}}]},
+        headers={"Authorization": f"Bearer {rw['key']}"},
+    ).json()
+    assert ok["executed_steps"][0]["success"] is True
+
+
+def test_events_key_runs_as_staff_not_platform(platform_app, owner, ai):
+    platform_app.put("/api/autopilot", json={"mode": "autonomous"}, headers=owner)
+    key = _api_key(platform_app, owner, ["events"])
+    ai.plan([LEAD_STEPS[2], LEAD_STEPS[1] | {"params": {"title": "From form"}}])
+    res = platform_app.post("/v1/events", json={"type": "form.submitted", "data": {}}, headers={"Authorization": f"Bearer {key['key']}"}).json()
+    assert res["executed_steps"] == [] and len(res["approvals"]) == 2
+
+
+def test_runtime_cannot_forge_platform_events(platform_app, owner, ai, monkeypatch):
+    sent = []
+    monkeypatch.setattr("integrations.webhooks.httpx.post", lambda url, content=None, headers=None, timeout=None, **_: sent.append(headers["BOS-Event"]) or httpx.Response(200))
+    platform_app.post("/api/developer/webhooks", json={"url": "https://hooks.example.com/x", "events": ["*"]}, headers=owner)
+    ai.plan([{"capability": "integration_events", "action": "emit_event", "params": {"event": "approval.decided", "data": {}}, "title": "Emit"}])
+    platform_app.post("/api/chat", json={"message": "emit"}, headers=owner)
+    assert "custom.approval.decided" in sent and "approval.decided" not in sent
+
+
+def test_channel_identity_never_merges_on_phone(platform_app):
+    from gateway.runtime_gateway import RuntimeGateway
+
+    victim = ContactRepository.upsert({"name": "Victim", "phone": "+914444444444"})
+    attacker_id = RuntimeGateway.identify_contact(channel="whatsapp", external_id="999", name="Attacker", phone="+914444444444")
+    assert attacker_id != victim["id"]
+    assert ContactRepository.get(victim["id"])["name"] == "Victim"

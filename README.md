@@ -101,10 +101,12 @@ Endpoints: `/v1/messages`, `/v1/actions`, `/v1/events`, `/v1/contacts`, `/v1/tas
 | --- | --- |
 | `runtime` | Send customer messages (`/v1/messages`). Safe for a website chat widget. |
 | `operator` | Act as staff: `/v1/actions` and the MCP server. External steps still need owner approval. |
-| `records:read` / `records:write` | Read contacts, tasks and approvals / save contacts. |
-| `events` | Report external events (`/v1/events`). |
+| `records:read` / `records:write` | Read / change contacts and tasks, over REST and inside the Runtime. |
+| `events` | Report external events (`/v1/events`) and emit `custom.*` webhook events. |
 
-Conversation ids sent by an API key stay in that key's own namespace.
+Scopes are enforced inside the Runtime too: when an API or MCP request plans a step its key isn't
+scoped for, a read is refused and anything else waits for owner approval. Keys always act as staff,
+never as the platform. Conversation ids sent by an API key stay in that key's own namespace.
 
 **Webhooks.** Events such as `contact.saved`, `task.created`, `approval.requested` and
 `autopilot.briefing.ready` are POSTed with a Stripe-style signature:

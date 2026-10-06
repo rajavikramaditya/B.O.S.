@@ -78,7 +78,9 @@ class PolicyEngine:
     """
 
     @staticmethod
-    def validate_policy(plan, context, role: str | None = None, raw_text: str = "", actor_ref: str = "") -> Any:
+    def validate_policy(
+        plan, context, role: str | None = None, raw_text: str = "", actor_ref: str = "", grants: list | None = None
+    ) -> Any:
         from ..cognition import RuntimeCognition
         from ..contracts import PolicyDecision
 
@@ -96,6 +98,12 @@ class PolicyEngine:
                 continue
             if step.risk == "read" and not PolicyEngine._role_may_read(role):
                 denied.append({"step_id": step.step_id, "reason": "Business records are not readable from this conversation."})
+                continue
+            if not plan.preapproved and not PolicyEngine._granted(grants, step):
+                if step.risk == "read":
+                    denied.append({"step_id": step.step_id, "reason": f"This caller may not read '{step.capability}'."})
+                else:
+                    pending.append(step)  # outside the caller's grant: the owner decides
                 continue
             if role == "customer" and step.risk == "safe" and not plan.preapproved:
                 # Untrusted actors may only change their own record; anything else waits for the owner.
@@ -137,6 +145,12 @@ class PolicyEngine:
             pending_steps=pending,
             denied_steps=denied,
         )
+
+    @staticmethod
+    def _granted(grants: list | None, step: Any) -> bool:
+        if grants is None:
+            return True
+        return step.capability in grants or (step.risk == "read" and f"{step.capability}:read" in grants)
 
     @staticmethod
     def _role_may_read(role: str) -> bool:

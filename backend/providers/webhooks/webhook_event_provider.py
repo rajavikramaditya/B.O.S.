@@ -38,5 +38,8 @@ class WebhookEventProvider(BaseProvider):
         if not event:
             return {"success": False, "error": "event name is required."}
         data = params.get("data") if isinstance(params.get("data"), dict) else {"value": params.get("data")}
-        queued = WebhookDispatcher.publish(f"custom.{event}" if "." not in event else event, data)
-        return {"success": True, "event": event, "subscribers": queued}
+        # Runtime-emitted events always live under "custom." so they can never pose as platform
+        # lifecycle events (approval.decided, contact.saved, ...) signed with the same secret.
+        name = event if event.startswith("custom.") else f"custom.{event}"
+        queued = WebhookDispatcher.publish(name, data)
+        return {"success": True, "event": name, "subscribers": queued}

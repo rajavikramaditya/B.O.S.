@@ -5,7 +5,7 @@ Stage 1 of Runtime Lifecycle: Normalizes incoming inputs into a unified Normaliz
 
 import time
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from .contracts import NormalizedRequest, ActorRole
 
 KNOWN_ROLES = ("owner", "customer", "employee", "system")
@@ -26,6 +26,7 @@ class ObservationEngine:
         raw_payload: Dict[str, Any] | None = None,
         conversation_id: str = "",
         actor_ref: str = "",
+        grants: Optional[List[str]] = None,
     ) -> NormalizedRequest:
         role_str = (role or "customer").strip().lower()
         role_clean: ActorRole = role_str if role_str in KNOWN_ROLES else "customer"  # type: ignore[assignment]
@@ -43,4 +44,5 @@ class ObservationEngine:
             raw_payload=raw_payload or {},
             conversation_id=conversation_id or f"{channel or 'runtime'}:{req_id}",
             actor_ref=actor_ref or "",
+            grants=list(grants) if grants is not None else None,
         )

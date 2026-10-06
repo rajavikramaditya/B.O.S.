@@ -26,6 +26,9 @@ class NormalizedRequest:
     raw_payload: Dict[str, Any] = field(default_factory=dict)
     conversation_id: str = ""
     actor_ref: str = ""
+    # Capabilities the caller may use ("cap" = all actions, "cap:read" = read actions only).
+    # None means unrestricted (owner, platform). Set from API key scopes by the interface.
+    grants: Optional[List[str]] = None
 
 
 @dataclass

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from gateway.runtime_gateway import RuntimeGateway
-from integrations.api_keys import key_conversation_id
+from integrations.api_keys import grants_for_scopes, key_conversation_id
 from runtime.cognition import RuntimeCognition
 from workspace.records import ContactRepository, TaskRepository
 
@@ -96,6 +96,7 @@ def post_actions(body: ActionsIn, principal: Principal = Depends(require_scope("
         conversation_id=key_conversation_id(principal.id, "actions"),
         sender_name=principal.name,
         raw_payload={"plan": [s.model_dump() for s in body.plan]},
+        grants=grants_for_scopes(principal.scopes),
         source=f"api:{principal.name}",
     )
     return _public(result)
@@ -104,12 +105,13 @@ def post_actions(body: ActionsIn, principal: Principal = Depends(require_scope("
 @router.post("/events", summary="Tell B.O.S. something happened; it decides what to do")
 def post_event(body: EventIn, principal: Principal = Depends(require_scope("events"))) -> Dict[str, Any]:
     result = RuntimeGateway.submit(
-        role="system",
+        role="employee",  # an integration is staff-level, never the platform itself
         message=f"An external event arrived from '{principal.name}': {body.type}. Decide whether and how the business should act.",
         channel="events",
         conversation_id=key_conversation_id(principal.id, body.type, "events"),
         sender_name=principal.name,
         raw_payload={"event": {"type": body.type, "data": body.data}},
+        grants=grants_for_scopes(principal.scopes),
         source=f"event:{body.type}",
     )
     return _public(result)
@@ -134,6 +136,7 @@ def save_contact(body: ContactIn, principal: Principal = Depends(require_scope("
         conversation_id=key_conversation_id(principal.id, "actions"),
         sender_name=principal.name,
         raw_payload={"plan": [{"capability": "contacts", "action": "upsert_contact", "params": body.model_dump(), "title": "Save contact"}]},
+        grants=grants_for_scopes(principal.scopes),
         source=f"api:{principal.name}",
     )
     return _public(result)

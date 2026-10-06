@@ -49,29 +49,31 @@ def task_to_dict(t: Task) -> Dict[str, Any]:
 
 class ContactRepository:
     @staticmethod
-    def _find(db, data: Dict[str, Any]) -> Optional[Contact]:
+    def _find(db, data: Dict[str, Any], match_on: tuple = ("external_id", "phone", "email")) -> Optional[Contact]:
         if data.get("id"):
             found = db.get(Contact, data["id"])
             if found:
                 return found
         clauses = []
-        if data.get("external_id"):
+        if data.get("external_id") and "external_id" in match_on:
             clauses.append(Contact.external_id == str(data["external_id"]))
-        if data.get("phone"):
+        if data.get("phone") and "phone" in match_on:
             clauses.append(Contact.phone == str(data["phone"]))
-        if data.get("email"):
+        if data.get("email") and "email" in match_on:
             clauses.append(Contact.email == str(data["email"]).lower())
         if not clauses:
             return None
         return db.scalars(select(Contact).where(or_(*clauses)).limit(1)).first()
 
     @staticmethod
-    def upsert(data: Dict[str, Any]) -> Dict[str, Any]:
+    def upsert(data: Dict[str, Any], match_on: tuple = ("external_id", "phone", "email")) -> Dict[str, Any]:
+        """Create or update a contact. Channel identities pass match_on=("external_id",) so an
+        unverified phone/email can never attach one person to another person's record."""
         clean = {k: v for k, v in data.items() if k in CONTACT_FIELDS and v not in (None, "")}
         if "email" in clean:
             clean["email"] = str(clean["email"]).lower()
         with WorkspaceDatabase.session() as db:
-            contact = ContactRepository._find(db, data)
+            contact = ContactRepository._find(db, data, match_on)
             created = contact is None
             if created:
                 contact = Contact()

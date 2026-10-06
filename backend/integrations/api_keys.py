@@ -89,3 +89,20 @@ def key_conversation_id(key_id: str, requested: Optional[str], channel: str = "a
         return requested
     return f"{prefix}{channel}:{requested or secrets.token_hex(6)}"
 
+
+# What each scope lets a key's requests do inside the Runtime ("cap" = all actions, "cap:read" = reads).
+SCOPE_GRANTS = {
+    "records:read": ("contacts:read", "tasks:read"),
+    "records:write": ("contacts", "tasks"),
+    "events": ("integration_events",),
+}
+ALWAYS_GRANTED = ("send_message",)  # external, so it still waits for owner approval
+
+
+def grants_for_scopes(scopes) -> List[str]:
+    """Runtime capability grants for an API key; steps outside them wait for the owner (or are denied for reads)."""
+    grants = set(ALWAYS_GRANTED)
+    for scope in scopes or ():
+        grants.update(SCOPE_GRANTS.get(scope, ()))
+    return sorted(grants)
+

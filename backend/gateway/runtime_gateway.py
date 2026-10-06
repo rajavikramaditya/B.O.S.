@@ -41,6 +41,7 @@ class RuntimeGateway:
         raw_payload: Optional[Dict[str, Any]] = None,
         source: str = "chat",
         preapproved: bool = False,
+        grants: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         result = BOSRuntimeEngine.execute(
             role=role,
@@ -51,6 +52,7 @@ class RuntimeGateway:
             conversation_id=conversation_id,
             actor_ref=actor_ref,
             preapproved=preapproved,
+            grants=grants,
         )
         result["approvals"] = cls._open_approvals(result.get("pending_steps", []), source, conversation_id)
         cls._record_effects(result, channel=channel, role=role, sender_name=sender_name, message=message)
@@ -104,7 +106,15 @@ class RuntimeGateway:
         result = CapabilityResolver.execute(
             "contacts",
             "upsert_contact",
-            {"channel": channel, "external_id": f"{channel}:{external_id}", "name": name, "phone": phone, "email": email},
+            {
+                "channel": channel,
+                "external_id": f"{channel}:{external_id}",
+                "name": name,
+                "phone": phone,
+                "email": email,
+                # Phone/email here are self-reported, so they must never select an existing record.
+                "match_on": ["external_id"],
+            },
             CapabilityContext(module_id="gateway"),
         )
         contact = (result.data or {}).get("contact") or {}

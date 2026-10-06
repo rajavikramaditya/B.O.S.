@@ -77,6 +77,7 @@ class BOSRuntimeEngine:
         conversation_id: str = "",
         actor_ref: str = "",
         preapproved: bool = False,
+        grants: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         state = existing_state or RuntimeState()
         state.status = "RUNNING"
@@ -92,6 +93,7 @@ class BOSRuntimeEngine:
             raw_payload=raw_payload,
             conversation_id=conversation_id,
             actor_ref=actor_ref,
+            grants=grants,
         )
         state.request_data = asdict(request)
         run = _Run(request=request, preapproved=preapproved)
@@ -150,7 +152,7 @@ class BOSRuntimeEngine:
 
         elif ntype == NodeType.POLICY:
             run.policy = PolicyEngine.validate_policy(
-                run.plan, run.context, role=req.role, raw_text=req.message, actor_ref=req.actor_ref
+                run.plan, run.context, role=req.role, raw_text=req.message, actor_ref=req.actor_ref, grants=req.grants
             )
             state.policy_data = {
                 "status": run.policy.status,

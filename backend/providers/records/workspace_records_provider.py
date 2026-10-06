@@ -42,7 +42,9 @@ class WorkspaceRecordsProvider(BaseProvider):
 
     def execute(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         if action == "upsert_contact":
-            contact = ContactRepository.upsert(params)
+            allowed = ("external_id", "phone", "email")
+            match_on = tuple(m for m in (params.get("match_on") or allowed) if m in allowed)
+            contact = ContactRepository.upsert(params, match_on)
             return {"success": True, "contact": contact}
         if action == "find_contact":
             contact = ContactRepository.find(params)
