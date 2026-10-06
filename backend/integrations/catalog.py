@@ -102,5 +102,10 @@ CONNECTORS: List[Dict[str, Any]] = [
 ]
 
 
+def inbound_channel_ids() -> List[str]:
+    """Channels customers can message the business through (outbound-only ones such as SMTP excluded)."""
+    return [c["id"] for c in CONNECTORS if c.get("kind") == "channel" and c.get("inbound")]
+
+
 def get_connector(connector_id: str) -> Optional[Dict[str, Any]]:
     return next((c for c in CONNECTORS if c["id"] == connector_id), None)

@@ -28,6 +28,14 @@ def test_health_and_first_run(platform_app):
     assert [s["id"] for s in status["steps"]] == ["owner", "ai", "profile", "channel"]
 
 
+def test_outbound_only_email_is_not_a_customer_channel(platform_app):
+    ConnectionStore.save("email", {"host": "smtp.example.com", "port": "587", "username": "u", "password": "p", "from_address": "a@example.com"})
+    channel = platform_app.get("/api/setup/status").json()["steps"][3]
+    assert channel["id"] == "channel" and channel["done"] is False
+    ConnectionStore.save("telegram", {"bot_token": "t", "webhook_secret": "s"})
+    assert platform_app.get("/api/setup/status").json()["steps"][3]["done"] is True
+
+
 def test_owner_setup_login_and_single_owner(platform_app, owner):
     assert platform_app.get("/api/auth/me", headers=owner).json()["email"] == "asha@example.com"
     again = platform_app.post("/api/setup/owner", json={"name": "X", "email": "x@example.com", "password": "another-pass"})

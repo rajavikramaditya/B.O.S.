@@ -247,7 +247,8 @@ function AiStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) 
 const CHANNEL_ICON: Record<string, typeof Send> = { telegram: Send, whatsapp: MessageCircle, email: Mail };
 
 function ChannelStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
-  const connectors = useConnectors().filter((c) => c.kind === "channel");
+  // Only channels customers can write in on; outbound-only ones (SMTP) are set up from Integrations.
+  const connectors = useConnectors().filter((c) => c.kind === "channel" && c.inbound_url);
   const [chosen, setChosen] = useState<string>("");
   const connector = connectors.find((c) => c.id === chosen);
 

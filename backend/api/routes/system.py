@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from bootstrap.platform import VERSION, Platform
+from integrations.catalog import inbound_channel_ids
 from integrations.connections import ConnectionStore
 from workspace.activity import ActivityLog
 from workspace.database import WorkspaceDatabase
@@ -38,7 +39,7 @@ class Login(BaseModel):
 
 def setup_checklist() -> Dict[str, Any]:
     profile = SettingsStore.get(BUSINESS_PROFILE)
-    channels = [c for c in ("telegram", "whatsapp", "email") if ConnectionStore.is_connected(c)]
+    channels = [c for c in inbound_channel_ids() if ConnectionStore.is_connected(c)]
     steps = [
         {"id": "owner", "title": "Create your owner account", "done": Platform.has_owner()},
         {"id": "ai", "title": "Connect an AI model", "done": Platform.ai_status()["configured"]},
