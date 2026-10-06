@@ -149,7 +149,9 @@ class BOSRuntimeEngine:
             state.plan_data["plan"] = asdict(run.plan)
 
         elif ntype == NodeType.POLICY:
-            run.policy = PolicyEngine.validate_policy(run.plan, run.context, role=req.role, raw_text=req.message)
+            run.policy = PolicyEngine.validate_policy(
+                run.plan, run.context, role=req.role, raw_text=req.message, actor_ref=req.actor_ref
+            )
             state.policy_data = {
                 "status": run.policy.status,
                 "reason": run.policy.reason,

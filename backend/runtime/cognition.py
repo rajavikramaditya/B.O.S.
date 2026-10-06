@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 PLANNER_VISIBLE = "planner_visible"
 ACTION_RISK = "action_risk"
 ACTION_PARAMS = "action_params"
+SELF_SERVICE = "self_service"
 RISK_LEVELS = ("read", "safe", "external", "sensitive")
 AI_UNAVAILABLE = "ai_unavailable"
 AI_FAILED = "ai_failed"
@@ -91,6 +92,17 @@ class RuntimeCognition:
             return None
         risk = (config.get(ACTION_RISK) or {}).get(action)
         return risk if risk in RISK_LEVELS else None
+
+    @staticmethod
+    def self_service_param(capability: str, action: str) -> Optional[str]:
+        """Parameter a customer may only set to their own contact id; None if not self-service."""
+        from capabilities.registry import RuntimeCapabilityRegistry
+
+        cap = RuntimeCapabilityRegistry.get(capability)
+        if cap is None:
+            return None
+        value = ((cap.metadata.configuration or {}).get(SELF_SERVICE) or {}).get(action)
+        return str(value) if value else None
 
     @staticmethod
     def parse_params(raw: Any) -> Dict[str, Any]:

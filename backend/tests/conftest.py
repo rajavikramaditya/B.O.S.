@@ -82,16 +82,17 @@ def platform_app(tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
 
     from api.app import create_app
-    from api.rate_limit import auth_limiter
+    from api.rate_limit import account_limiter, auth_limiter
     from bootstrap.settings import PlatformSettings
     from integrations.webhooks import WebhookDispatcher
 
-    for var in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DATABASE_URL", "MEMORY_DATABASE_URL", "PUBLIC_BASE_URL"):
+    for var in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DATABASE_URL", "MEMORY_DATABASE_URL", "PUBLIC_BASE_URL", "BOS_SETUP_TOKEN"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("BOS_DATA_DIR", str(tmp_path))
     monkeypatch.setattr(WebhookDispatcher, "synchronous", True)
     _reset_registries()
     auth_limiter.reset()
+    account_limiter.reset()
     app = create_app(PlatformSettings.from_env(), start_scheduler=False)
     with TestClient(app) as client:
         yield client

@@ -27,7 +27,7 @@ class ProviderBackedCapability(BaseCapability):
         actions: Dict[str, Dict[str, Any]],
         planner_visible: bool = True,
     ):
-        """actions: {action: {"risk": read|safe|external|sensitive, "params": {name: description}}}"""
+        """actions: {action: {"risk": read|safe|external|sensitive, "params": {...}, "self_service": param}}"""
         self._provider_capability = provider_capability
         self._actions = actions
         super().__init__(
@@ -38,11 +38,7 @@ class ProviderBackedCapability(BaseCapability):
                 description=description,
                 required_providers=[provider_capability],
                 scope=CapabilityScope.GLOBAL,
-                configuration={
-                    "planner_visible": planner_visible,
-                    "action_risk": {a: spec.get("risk", "external") for a, spec in actions.items()},
-                    "action_params": {a: spec.get("params", {}) for a, spec in actions.items()},
-                },
+                configuration=_declarations(actions, planner_visible),
             )
         )
 
@@ -67,10 +63,18 @@ class ProviderBackedCapability(BaseCapability):
 
 def declare_actions(capability: BaseCapability, actions: Dict[str, Dict[str, Any]], planner_visible: bool = True) -> None:
     """Attach planner/policy declarations to an existing capability (e.g. reference capabilities)."""
-    capability.metadata.configuration.update(
-        {
-            "planner_visible": planner_visible,
-            "action_risk": {a: spec.get("risk", "external") for a, spec in actions.items()},
-            "action_params": {a: spec.get("params", {}) for a, spec in actions.items()},
-        }
-    )
+    capability.metadata.configuration.update(_declarations(actions, planner_visible))
+
+
+def _declarations(actions: Dict[str, Dict[str, Any]], planner_visible: bool) -> Dict[str, Any]:
+    """Planner/policy metadata.
+
+    spec keys: risk, params, and optional self_service — the parameter the Runtime pins to
+    the requesting customer's own contact id, so customers can only act on their own record.
+    """
+    return {
+        "planner_visible": planner_visible,
+        "action_risk": {a: spec.get("risk", "external") for a, spec in actions.items()},
+        "action_params": {a: spec.get("params", {}) for a, spec in actions.items()},
+        "self_service": {a: spec["self_service"] for a, spec in actions.items() if spec.get("self_service")},
+    }

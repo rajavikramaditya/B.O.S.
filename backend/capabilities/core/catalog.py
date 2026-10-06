@@ -33,7 +33,11 @@ def build_core_capabilities() -> List[BaseCapability]:
             description="Customers, leads and partners: save, update, look up and list contacts.",
             provider_capability="business_records",
             actions={
-                "upsert_contact": {"risk": "safe", "params": {"id": "Existing contact id (optional)", **CONTACT_FIELDS}},
+                "upsert_contact": {
+                    "risk": "safe",
+                    "params": {"id": "Existing contact id (optional)", **CONTACT_FIELDS},
+                    "self_service": "id",
+                },
                 "find_contact": {"risk": "read", "params": {"id": "Contact id", "phone": "Phone", "email": "Email"}},
                 "list_contacts": {"risk": "read", "params": {"search": "Text to search", "stage": "Filter by stage", "limit": "Max results"}},
             },
@@ -52,6 +56,7 @@ def build_core_capabilities() -> List[BaseCapability]:
                         "due_at": "ISO-8601 datetime",
                         "contact_id": "Related contact id",
                     },
+                    "self_service": "contact_id",
                 },
                 "complete_task": {"risk": "safe", "params": {"task_id": "Task id"}},
                 "list_tasks": {"risk": "read", "params": {"status": "open | done", "limit": "Max results"}},

@@ -97,11 +97,21 @@ curl -X POST http://localhost:8000/v1/messages \
 Endpoints: `/v1/messages`, `/v1/actions`, `/v1/events`, `/v1/contacts`, `/v1/tasks`,
 `/v1/capabilities`. The full OpenAPI reference is at `/api/docs`.
 
+| Scope | Allows |
+| --- | --- |
+| `runtime` | Send customer messages (`/v1/messages`). Safe for a website chat widget. |
+| `operator` | Act as staff: `/v1/actions` and the MCP server. External steps still need owner approval. |
+| `records:read` / `records:write` | Read contacts, tasks and approvals / save contacts. |
+| `events` | Report external events (`/v1/events`). |
+
+Conversation ids sent by an API key stay in that key's own namespace.
+
 **Webhooks.** Events such as `contact.saved`, `task.created`, `approval.requested` and
 `autopilot.briefing.ready` are POSTed with a Stripe-style signature:
 `BOS-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`.
 
-**MCP.** Point any MCP client at `https://your-host/mcp` with an API key:
+**MCP.** Point any MCP client at `https://your-host/mcp` with an API key that has the
+`operator` scope (add `records:read` to let agents read contacts and tasks):
 
 ```json
 { "mcpServers": { "bos": { "type": "http", "url": "https://your-host/mcp",
@@ -110,6 +120,8 @@ Endpoints: `/v1/messages`, `/v1/actions`, `/v1/events`, `/v1/contacts`, `/v1/tas
 
 ## Production notes
 
+- Set `BOS_SETUP_TOKEN` before exposing a fresh instance, so only you can create the owner account.
+- Behind a managed proxy (Render, Fly, Cloud Run) set `FORWARDED_ALLOW_IPS=*` so rate limits see real client addresses.
 - Run a single worker (the default image does). Autopilot's scheduler runs in-process.
 - Data lives in `/data` (SQLite by default). Back up that volume, or point
   `DATABASE_URL` / `MEMORY_DATABASE_URL` at PostgreSQL (`docker compose --profile postgres up -d`).

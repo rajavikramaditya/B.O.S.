@@ -37,3 +37,6 @@ class RateLimiter:
 
 
 auth_limiter = RateLimiter(limit=8, window_seconds=60)
+# Per-account limit on top of the per-address one, so rotating addresses can't spray one account.
+account_limiter = RateLimiter(limit=10, window_seconds=300)
+

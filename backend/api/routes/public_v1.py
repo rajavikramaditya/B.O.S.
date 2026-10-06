@@ -4,13 +4,13 @@ Stable, API-key protected endpoints for websites, apps and automation platforms.
 Everything still flows through the Runtime, so Policy and Verification always apply.
 """
 
-import uuid
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from gateway.runtime_gateway import RuntimeGateway
+from integrations.api_keys import key_conversation_id
 from runtime.cognition import RuntimeCognition
 from workspace.records import ContactRepository, TaskRepository
 
@@ -78,7 +78,7 @@ def post_message(body: MessageIn, principal: Principal = Depends(require_scope("
         role="customer",
         message=body.message,
         channel=body.channel,
-        conversation_id=body.conversation_id or f"{body.channel}:{uuid.uuid4().hex[:12]}",
+        conversation_id=key_conversation_id(principal.id, body.conversation_id, body.channel),
         sender_name=(body.contact.name if body.contact else "") or "Customer",
         actor_ref=actor_ref,
         source=f"api:{principal.name}",
@@ -86,13 +86,14 @@ def post_message(body: MessageIn, principal: Principal = Depends(require_scope("
     return _public(result)
 
 
-@router.post("/actions", summary="Run an explicit plan of capability actions")
-def post_actions(body: ActionsIn, principal: Principal = Depends(require_scope("runtime"))) -> Dict[str, Any]:
+@router.post("/actions", summary="Run an explicit plan of capability actions (staff-level)")
+def post_actions(body: ActionsIn, principal: Principal = Depends(require_scope("operator"))) -> Dict[str, Any]:
+    # Keys act as staff, never as the platform: external or sensitive steps still wait for the owner.
     result = RuntimeGateway.submit(
-        role="system",
+        role="employee",
         message=body.note or "Run actions requested through the API",
         channel="api",
-        conversation_id=f"api:{principal.id}",
+        conversation_id=key_conversation_id(principal.id, "actions"),
         sender_name=principal.name,
         raw_payload={"plan": [s.model_dump() for s in body.plan]},
         source=f"api:{principal.name}",
@@ -106,7 +107,7 @@ def post_event(body: EventIn, principal: Principal = Depends(require_scope("even
         role="system",
         message=f"An external event arrived from '{principal.name}': {body.type}. Decide whether and how the business should act.",
         channel="events",
-        conversation_id=f"events:{body.type}",
+        conversation_id=key_conversation_id(principal.id, body.type, "events"),
         sender_name=principal.name,
         raw_payload={"event": {"type": body.type, "data": body.data}},
         source=f"event:{body.type}",
@@ -127,10 +128,10 @@ def list_contacts(search: str = "", stage: str = "", principal: Principal = Depe
 @router.post("/contacts")
 def save_contact(body: ContactIn, principal: Principal = Depends(require_scope("records:write"))) -> Dict[str, Any]:
     result = RuntimeGateway.submit(
-        role="system",
+        role="employee",
         message="Save a contact submitted through the API",
         channel="api",
-        conversation_id=f"api:{principal.id}",
+        conversation_id=key_conversation_id(principal.id, "actions"),
         sender_name=principal.name,
         raw_payload={"plan": [{"capability": "contacts", "action": "upsert_contact", "params": body.model_dump(), "title": "Save contact"}]},
         source=f"api:{principal.name}",

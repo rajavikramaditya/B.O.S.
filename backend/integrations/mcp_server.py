@@ -10,6 +10,7 @@ import json
 from typing import Any, Callable, Dict, Optional
 
 from gateway.runtime_gateway import RuntimeGateway
+from integrations.api_keys import key_conversation_id
 from runtime.cognition import RuntimeCognition
 from workspace.approvals import ApprovalRepository
 from workspace.records import ContactRepository, TaskRepository
@@ -62,9 +63,15 @@ TOOLS = [
 class McpServer:
     """Stateless JSON-RPC handler bound to the calling API key's identity."""
 
-    def __init__(self, client_name: str, client_id: str):
+    READ_TOOLS = ("list_contacts", "list_tasks", "list_pending_approvals")
+
+    def __init__(self, client_name: str, client_id: str, scopes: tuple = ()):
         self.client_name = client_name
         self.client_id = client_id
+        self.can_read_records = "records:read" in scopes
+
+    def tools(self) -> list:
+        return [t for t in TOOLS if self.can_read_records or t["name"] not in self.READ_TOOLS]
 
     def handle(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         method = message.get("method", "")
@@ -74,7 +81,7 @@ class McpServer:
         handlers: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
             "initialize": self._initialize,
             "ping": lambda _p: {},
-            "tools/list": lambda _p: {"tools": TOOLS},
+            "tools/list": lambda _p: {"tools": self.tools()},
             "tools/call": self._call_tool,
         }
         handler = handlers.get(method)
@@ -97,12 +104,14 @@ class McpServer:
     def _call_tool(self, params: Dict[str, Any]) -> Dict[str, Any]:
         name = params.get("name", "")
         args = params.get("arguments") or {}
+        if name in self.READ_TOOLS and not self.can_read_records:
+            return {"content": [{"type": "text", "text": "This API key lacks the 'records:read' scope."}], "isError": True}
         if name == "ask_operator":
             result = RuntimeGateway.submit(
                 role="employee",
                 message=str(args.get("message") or ""),
                 channel="mcp",
-                conversation_id=str(args.get("conversation_id") or f"mcp:{self.client_id}"),
+                conversation_id=key_conversation_id(self.client_id, args.get("conversation_id") or "default", "mcp"),
                 sender_name=self.client_name,
                 source=f"mcp:{self.client_name}",
             )
@@ -124,7 +133,7 @@ class McpServer:
                 role="employee",
                 message=step["reason"],
                 channel="mcp",
-                conversation_id=f"mcp:{self.client_id}",
+                conversation_id=key_conversation_id(self.client_id, "actions", "mcp"),
                 sender_name=self.client_name,
                 raw_payload={"plan": [step]},
                 source=f"mcp:{self.client_name}",

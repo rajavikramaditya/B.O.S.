@@ -31,7 +31,7 @@ export function Onboarding() {
     const list: StepId[] = [];
     if (!owner) list.push("account");
     list.push("business");
-    if (!setup?.ai.configured) list.push("ai");
+    if (!setup?.ai?.configured) list.push("ai");
     list.push("channel", "done");
     return list;
   });
@@ -53,7 +53,7 @@ export function Onboarding() {
             <span key={s} className={i <= index ? "done" : ""} />
           ))}
         </div>
-        {step === "account" && <AccountStep onDone={(token, who) => { signIn(token, who); next(); }} />}
+        {step === "account" && <AccountStep tokenRequired={Boolean(setup?.setup_token_required)} onDone={(token, who) => { signIn(token, who); next(); }} />}
         {step === "business" && <BusinessStep onDone={next} onBack={index > 0 && steps[index - 1] !== "account" ? back : undefined} />}
         {step === "ai" && <AiStep onDone={next} onBack={back} />}
         {step === "channel" && <ChannelStep onDone={next} onBack={back} />}
@@ -63,8 +63,8 @@ export function Onboarding() {
   );
 }
 
-function AccountStep({ onDone }: { onDone: (token: string, owner: Owner) => void }) {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+function AccountStep({ onDone, tokenRequired }: { onDone: (token: string, owner: Owner) => void; tokenRequired: boolean }) {
+  const [form, setForm] = useState({ name: "", email: "", password: "", setup_token: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -102,6 +102,13 @@ function AccountStep({ onDone }: { onDone: (token: string, owner: Owner) => void
           <input id="password" className="input" type="password" minLength={8} required autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <span className="hint">At least 8 characters. You're the owner — only you approve important actions.</span>
         </div>
+        {tokenRequired && (
+          <div className="field">
+            <label className="label" htmlFor="setup_token">Setup token</label>
+            <input id="setup_token" className="input input-mono" type="password" required autoComplete="off" value={form.setup_token} onChange={(e) => setForm({ ...form, setup_token: e.target.value })} />
+            <span className="hint">Set as BOS_SETUP_TOKEN on your server, so only you can claim this workspace.</span>
+          </div>
+        )}
       </div>
       <div className="flow-actions">
         <span />

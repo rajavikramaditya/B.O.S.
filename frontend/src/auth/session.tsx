@@ -45,10 +45,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
   }, [refreshSetup]);
 
-  const signIn = useCallback((token: string, who: Owner) => {
-    setToken(token);
-    setOwner(who);
-  }, []);
+  const signIn = useCallback(
+    (token: string, who: Owner) => {
+      setToken(token);
+      setOwner(who);
+      refreshSetup(); // full status is only shown to the signed-in owner
+    },
+    [refreshSetup],
+  );
 
   const signOut = useCallback(() => {
     setToken("");

@@ -46,6 +46,7 @@ class PlatformSettings:
     memory_database_url: str = ""
     memory_database_schema: str = ""
     secret_key: str = ""
+    setup_token: str = ""
     public_base_url: str = ""
     cors_origins: List[str] = field(default_factory=list)
 
@@ -76,6 +77,7 @@ class PlatformSettings:
             memory_database_url=_sql_url(os.getenv("MEMORY_DATABASE_URL") or f"sqlite:///{data_dir / 'memory.db'}"),
             memory_database_schema=os.getenv("MEMORY_DATABASE_SCHEMA", ""),
             secret_key=os.getenv("BOS_SECRET_KEY", ""),
+            setup_token=os.getenv("BOS_SETUP_TOKEN", ""),
             public_base_url=os.getenv("PUBLIC_BASE_URL", "").rstrip("/"),
             cors_origins=origins,
             ai_provider=os.getenv("BOS_AI_PROVIDER", "auto").lower(),

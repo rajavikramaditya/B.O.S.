@@ -11,12 +11,14 @@ export interface AiStatus {
   active: { id: string; provider: string; model: string } | null;
 }
 
+/** Signed-out visitors only see `owner_exists` once a workspace has been set up. */
 export interface SetupStatus {
   owner_exists: boolean;
-  ai: AiStatus;
-  steps: SetupStep[];
-  complete: boolean;
-  connected_channels: string[];
+  setup_token_required?: boolean;
+  ai?: AiStatus;
+  steps?: SetupStep[];
+  complete?: boolean;
+  connected_channels?: string[];
 }
 
 export interface Owner {

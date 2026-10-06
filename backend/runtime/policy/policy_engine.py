@@ -78,7 +78,8 @@ class PolicyEngine:
     """
 
     @staticmethod
-    def validate_policy(plan, context, role: str | None = None, raw_text: str = "") -> Any:
+    def validate_policy(plan, context, role: str | None = None, raw_text: str = "", actor_ref: str = "") -> Any:
+        from ..cognition import RuntimeCognition
         from ..contracts import PolicyDecision
 
         if not plan or not plan.steps:
@@ -96,6 +97,13 @@ class PolicyEngine:
             if step.risk == "read" and not PolicyEngine._role_may_read(role):
                 denied.append({"step_id": step.step_id, "reason": "Business records are not readable from this conversation."})
                 continue
+            if role == "customer" and step.risk == "safe" and not plan.preapproved:
+                # Untrusted actors may only change their own record; anything else waits for the owner.
+                pin = RuntimeCognition.self_service_param(step.capability, step.action)
+                if not pin or not actor_ref:
+                    pending.append(step)
+                    continue
+                step.params = {**(step.params or {}), pin: actor_ref}
             verdict = PolicyEngineV2.evaluate(
                 action=step.action,
                 params=step.params or {},

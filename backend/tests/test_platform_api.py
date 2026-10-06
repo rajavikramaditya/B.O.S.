@@ -170,7 +170,7 @@ def test_webhooks_are_signed(platform_app, owner, ai, monkeypatch):
 
 
 def test_mcp_server(platform_app, owner, ai):
-    key = _api_key(platform_app, owner, ["runtime"])
+    key = _api_key(platform_app, owner, ["operator", "records:read"])
     headers = {"Authorization": f"Bearer {key['key']}"}
     init = platform_app.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}, headers=headers).json()
     assert init["result"]["serverInfo"]["name"] == "bos"
@@ -213,7 +213,7 @@ def test_ai_key_saved_from_dashboard_enables_provider(platform_app, owner, monke
     monkeypatch.setattr("providers.ai.claude_provider.ClaudeProvider.verify_key", staticmethod(lambda key: None))
     res = platform_app.post("/api/integrations/anthropic/connect", json={"fields": {"api_key": "sk-ant-test"}}, headers=owner)
     assert res.status_code == 200 and res.json()["connected"] is True
-    assert platform_app.get("/api/setup/status").json()["ai"]["active"]["provider"] == "claude"
+    assert platform_app.get("/api/setup/status", headers=owner).json()["ai"]["active"]["provider"] == "claude"
     listing = platform_app.get("/api/integrations", headers=owner).json()["connectors"]
     assert "sk-ant-test" not in json.dumps(listing)  # secrets never leave the vault
 
@@ -239,3 +239,82 @@ def test_whatsapp_webhook_requires_valid_signature(platform_app, ai):
     assert good.status_code == 200
     verify = platform_app.get("/v1/channels/whatsapp/webhook", params={"hub.mode": "subscribe", "hub.verify_token": "v", "hub.challenge": "42"})
     assert verify.text == "42"
+
+
+
+# --------------------------------------------------------------------------- security review fixes
+
+
+def test_customer_actions_are_limited_to_their_own_record(platform_app, owner, ai):
+    other = ContactRepository.upsert({"name": "Someone Else", "phone": "+912222222222"})
+    task = TaskRepository.create({"title": "Owner's private task"})
+    ai.plan(
+        [
+            {"capability": "contacts", "action": "upsert_contact", "params": {"id": other["id"], "stage": "inactive"}, "title": "Edit other"},
+            {"capability": "tasks", "action": "complete_task", "params": {"task_id": task["id"]}, "title": "Close task"},
+            {"capability": "integration_events", "action": "emit_event", "params": {"event": "x.y", "data": {}}, "title": "Emit"},
+        ]
+    )
+    res = platform_app.post("/api/chat", json={"message": "do things", "as_customer": True}, headers=owner).json()
+    ran = {s["title"]: s for s in res["executed_steps"]}
+    assert set(ran) == {"Edit other"}
+    assert ran["Edit other"]["data"]["contact"]["id"] != other["id"]  # pinned to the customer's own contact
+    assert ContactRepository.get(other["id"])["stage"] == "lead"
+    assert {a["title"] for a in res["approvals"]} == {"Close task", "Emit"}
+    assert TaskRepository.list()[0]["status"] == "open"
+
+
+def test_api_conversations_are_namespaced_per_key(platform_app, owner, ai):
+    key = _api_key(platform_app, owner, ["runtime"])
+    headers = {"Authorization": f"Bearer {key['key']}"}
+    res = platform_app.post("/v1/messages", json={"message": "hi", "conversation_id": "autopilot:2026-10-04"}, headers=headers).json()
+    assert res["conversation_id"].startswith(f"key:{key['id']}:")
+    again = platform_app.post("/v1/messages", json={"message": "hi", "conversation_id": res["conversation_id"]}, headers=headers).json()
+    assert again["conversation_id"] == res["conversation_id"]
+
+
+def test_actions_need_operator_scope_and_run_as_staff(platform_app, owner, ai):
+    platform_app.put("/api/autopilot", json={"mode": "autonomous"}, headers=owner)
+    plan = {"plan": [LEAD_STEPS[2]]}
+    runtime_key = _api_key(platform_app, owner, ["runtime"])
+    assert platform_app.post("/v1/actions", json=plan, headers={"Authorization": f"Bearer {runtime_key['key']}"}).status_code == 403
+    op_key = _api_key(platform_app, owner, ["operator"])
+    res = platform_app.post("/v1/actions", json=plan, headers={"Authorization": f"Bearer {op_key['key']}"}).json()
+    assert res["executed_steps"] == [] and len(res["approvals"]) == 1  # external steps still need the owner
+
+
+def test_mcp_record_tools_require_records_read(platform_app, owner, ai):
+    key = _api_key(platform_app, owner, ["operator"])
+    headers = {"Authorization": f"Bearer {key['key']}"}
+    tools = platform_app.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, headers=headers).json()
+    assert "list_contacts" not in [t["name"] for t in tools["result"]["tools"]]
+    call = platform_app.post(
+        "/mcp", json={"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "list_contacts", "arguments": {}}}, headers=headers
+    ).json()
+    assert call["result"]["isError"] is True
+    runtime_only = _api_key(platform_app, owner, ["runtime"])
+    assert platform_app.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/list"}, headers={"Authorization": f"Bearer {runtime_only['key']}"}).status_code == 403
+
+
+def test_setup_status_hides_details_after_setup(platform_app, owner):
+    public = platform_app.get("/api/setup/status").json()
+    assert public == {"owner_exists": True}
+    assert "ai" in platform_app.get("/api/setup/status", headers=owner).json()
+
+
+def test_setup_token_protects_first_run(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from api.app import create_app
+    from bootstrap.settings import PlatformSettings
+    from tests.conftest import _reset_registries
+
+    monkeypatch.setenv("BOS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("BOS_SETUP_TOKEN", "let-me-in")
+    _reset_registries()
+    with TestClient(create_app(PlatformSettings.from_env(), start_scheduler=False)) as client:
+        body = {"name": "A", "email": "a@example.com", "password": "password123"}
+        assert client.get("/api/setup/status").json()["setup_token_required"] is True
+        assert client.post("/api/setup/owner", json=body).status_code == 403
+        assert client.post("/api/setup/owner", json={**body, "setup_token": "let-me-in"}).status_code == 200
+    _reset_registries()

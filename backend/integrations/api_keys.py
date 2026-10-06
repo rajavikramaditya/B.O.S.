@@ -13,7 +13,12 @@ from sqlalchemy import select
 from workspace.database import WorkspaceDatabase
 from workspace.models import ApiKey
 
-SCOPES = ("runtime", "records:read", "records:write", "events")
+# runtime       — send customer messages (/v1/messages)
+# operator      — act as staff: explicit actions (/v1/actions) and the MCP server
+# records:read  — read contacts, tasks and approvals
+# records:write — save contacts
+# events        — report external events (/v1/events)
+SCOPES = ("runtime", "operator", "records:read", "records:write", "events")
 KEY_PREFIX = "bos_live_"
 
 
@@ -71,3 +76,16 @@ class ApiKeyService:
                 return False
             key.revoked = True
             return True
+
+
+def key_conversation_id(key_id: str, requested: Optional[str], channel: str = "api") -> str:
+    """Conversation ids chosen by API callers live in that key's own namespace.
+
+    A key can therefore never read or extend another key's, the owner's or Autopilot's threads.
+    """
+    prefix = f"key:{key_id}:"
+    requested = (requested or "").strip()
+    if requested.startswith(prefix):
+        return requested
+    return f"{prefix}{channel}:{requested or secrets.token_hex(6)}"
+

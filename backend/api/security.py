@@ -104,6 +104,16 @@ def current_principal(
     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired. Please sign in again.")
 
 
+def optional_owner(authorization: Optional[str] = Header(default=None)) -> Optional[Principal]:
+    """The signed-in owner, or None — for endpoints that show more to the owner."""
+    owner_id = read_session(_bearer(authorization))
+    if not owner_id:
+        return None
+    with WorkspaceDatabase.session() as db:
+        owner = db.get(Owner, owner_id)
+        return Principal(kind="owner", id=owner.id, name=owner.name) if owner else None
+
+
 def require_owner(principal: Principal = Depends(current_principal)) -> Principal:
     if principal.kind != "owner":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Owner session required.")

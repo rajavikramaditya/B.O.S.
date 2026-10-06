@@ -36,4 +36,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4)"
 
 # One worker: Autopilot's scheduler and the in-process rate limiter live in this process.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# X-Forwarded-For is trusted only from FORWARDED_ALLOW_IPS (uvicorn default: 127.0.0.1).
+# Behind a managed proxy that is the only way in (e.g. Render), set FORWARDED_ALLOW_IPS=*.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

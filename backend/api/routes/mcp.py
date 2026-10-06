@@ -17,12 +17,12 @@ router = APIRouter(tags=["MCP"])
 
 
 @router.post("/mcp")
-async def mcp_endpoint(request: Request, principal: Principal = Depends(require_scope("runtime"))) -> Any:
+async def mcp_endpoint(request: Request, principal: Principal = Depends(require_scope("operator"))) -> Any:
     try:
         body = await request.json()
     except ValueError:
         return JSONResponse({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}, status_code=400)
-    server = McpServer(client_name=principal.name, client_id=principal.id)
+    server = McpServer(client_name=principal.name, client_id=principal.id, scopes=principal.scopes)
     if isinstance(body, list):
         replies = [r for r in [await run_in_threadpool(server.handle, m) for m in body] if r is not None]
         return JSONResponse(replies) if replies else Response(status_code=202)

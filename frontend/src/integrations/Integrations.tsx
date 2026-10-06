@@ -134,7 +134,7 @@ function Developer() {
         <ApiKeys />
         <div className="card stack-sm">
           <div className="row"><div className="icon-tile"><Plug size={18} /></div><div><div className="card-title">MCP server</div><div className="card-subtitle">Let Claude, Cursor or any MCP client operate your business.</div></div></div>
-          <p className="small muted">Add this to your MCP client config, using an API key with the <code>runtime</code> scope:</p>
+          <p className="small muted">Add this to your MCP client config, using an API key with the <code>operator</code> scope (add <code>records:read</code> to let agents read contacts and tasks):</p>
           <div className="code">{JSON.stringify({ mcpServers: { bos: { type: "http", url: `${origin}/mcp`, headers: { Authorization: "Bearer bos_live_…" } } } }, null, 2)}</div>
           <p className="tiny faint">Agents go through the same policy and approvals as everyone else.</p>
         </div>
