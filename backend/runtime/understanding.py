@@ -72,6 +72,7 @@ AUDIENCE = {
 }
 
 INTERNAL_ROLES = ("owner", "employee", "system")
+RECORD_CAPABILITIES = ("contacts", "tasks")  # what the business snapshot exposes
 
 OPERATING_PRINCIPLES = """\
 How you operate (B.O.S. principles):
@@ -194,6 +195,16 @@ class UnderstandingEngine:
         )
 
     @staticmethod
+    def _may_see_records(request: NormalizedRequest) -> bool:
+        """Internal roles see the business snapshot, unless their grants exclude contact and task reads."""
+        if request.role not in INTERNAL_ROLES:
+            return False
+        grants = request.grants
+        if grants is None:
+            return True
+        return all(cap in grants or f"{cap}:read" in grants for cap in RECORD_CAPABILITIES)
+
+    @staticmethod
     def _messages(request: NormalizedRequest, context: RuntimeContext) -> List[Dict[str, str]]:
         history = [
             {"role": "assistant" if m.get("role") == "assistant" else "user", "content": str(m.get("content") or "")}
@@ -206,8 +217,8 @@ class UnderstandingEngine:
             "actor_profile": context.actor_profile,
             "autopilot_mode": context.autopilot_mode,
         }
-        if request.role in INTERNAL_ROLES:
-            # Customers never see internal records (other customers, tasks, approvals).
+        if UnderstandingEngine._may_see_records(request):
+            # Customers, and API keys without records:read, never see internal records.
             situation["business_snapshot"] = context.business_snapshot
         event = request.raw_payload.get("event") if isinstance(request.raw_payload, dict) else None
         if event:

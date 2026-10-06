@@ -46,7 +46,7 @@ MAX_WEBHOOK_BYTES = 256 * 1024
 
 async def _read_body(request: Request) -> bytes:
     """Read the request body, refusing it as soon as it exceeds MAX_WEBHOOK_BYTES."""
-    too_large = HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Payload too large.")
+    too_large = HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "Payload too large.")
     declared = request.headers.get("content-length", "")
     if declared.isdigit() and int(declared) > MAX_WEBHOOK_BYTES:
         raise too_large

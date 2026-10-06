@@ -101,14 +101,21 @@ class RuntimeGateway:
         return {"ok": True, "approval": updated}
 
     @classmethod
-    def identify_contact(cls, *, channel: str, external_id: str, name: str = "", phone: str = "", email: str = "") -> str:
-        """Find or create the contact behind an inbound channel identity; returns its id."""
+    def identify_contact(
+        cls, *, channel: str, external_id: str, name: str = "", phone: str = "", email: str = "", namespace: str = ""
+    ) -> str:
+        """Find or create the contact behind an inbound channel identity; returns its id.
+
+        `namespace` scopes caller-asserted identities (e.g. one API key's website users) so they
+        can never resolve to a contact owned by a verified channel such as Telegram or WhatsApp.
+        """
+        identity = f"{namespace}:{channel}:{external_id}" if namespace else f"{channel}:{external_id}"
         result = CapabilityResolver.execute(
             "contacts",
             "upsert_contact",
             {
                 "channel": channel,
-                "external_id": f"{channel}:{external_id}",
+                "external_id": identity,
                 "name": name,
                 "phone": phone,
                 "email": email,

@@ -27,7 +27,7 @@ class ProviderBackedCapability(BaseCapability):
         actions: Dict[str, Dict[str, Any]],
         planner_visible: bool = True,
     ):
-        """actions: {action: {"risk": read|safe|external|sensitive, "params": {...}, "self_service": param}}"""
+        """actions: {action: {"risk": ..., "params": {...}, "self_service": param, "self_service_fields": [...]}}"""
         self._provider_capability = provider_capability
         self._actions = actions
         super().__init__(
@@ -70,11 +70,13 @@ def _declarations(actions: Dict[str, Dict[str, Any]], planner_visible: bool) -> 
     """Planner/policy metadata.
 
     spec keys: risk, params, and optional self_service — the parameter the Runtime pins to
-    the requesting customer's own contact id, so customers can only act on their own record.
+    the requesting customer's own contact id, so customers can only act on their own record —
+    plus self_service_fields, the only other parameters a customer's step may set.
     """
     return {
         "planner_visible": planner_visible,
         "action_risk": {a: spec.get("risk", "external") for a, spec in actions.items()},
         "action_params": {a: spec.get("params", {}) for a, spec in actions.items()},
         "self_service": {a: spec["self_service"] for a, spec in actions.items() if spec.get("self_service")},
+        "self_service_fields": {a: list(spec.get("self_service_fields", ())) for a, spec in actions.items() if spec.get("self_service")},
     }

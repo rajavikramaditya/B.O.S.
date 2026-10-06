@@ -83,6 +83,9 @@ Observe → Context → Understand → Reason → Plan → Policy → (Approval)
 | **Autopilot** (default) | automatic | asks first | asks first |
 | Autonomous | automatic | automatic | asks first |
 
+Scheduled Autopilot reviews read text customers wrote, so on their own they only read records and
+add follow-up tasks. Changing contacts, closing tasks or emitting events from a review waits in Approvals.
+
 ## Integrations
 
 **REST API.** Create a key in *Integrations → Developer*, then:

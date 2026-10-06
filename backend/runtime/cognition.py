@@ -11,6 +11,7 @@ PLANNER_VISIBLE = "planner_visible"
 ACTION_RISK = "action_risk"
 ACTION_PARAMS = "action_params"
 SELF_SERVICE = "self_service"
+SELF_SERVICE_FIELDS = "self_service_fields"
 RISK_LEVELS = ("read", "safe", "external", "sensitive")
 AI_UNAVAILABLE = "ai_unavailable"
 AI_FAILED = "ai_failed"
@@ -103,6 +104,16 @@ class RuntimeCognition:
             return None
         value = ((cap.metadata.configuration or {}).get(SELF_SERVICE) or {}).get(action)
         return str(value) if value else None
+
+    @staticmethod
+    def self_service_fields(capability: str, action: str) -> List[str]:
+        """Parameters (besides the pinned one) a customer's self-service step may set."""
+        from capabilities.registry import RuntimeCapabilityRegistry
+
+        cap = RuntimeCapabilityRegistry.get(capability)
+        if cap is None:
+            return []
+        return list(((cap.metadata.configuration or {}).get(SELF_SERVICE_FIELDS) or {}).get(action) or [])
 
     @staticmethod
     def parse_params(raw: Any) -> Dict[str, Any]:

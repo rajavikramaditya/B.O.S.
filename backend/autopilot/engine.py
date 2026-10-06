@@ -49,6 +49,12 @@ def run_to_dict(r: AutopilotRun) -> Dict[str, Any]:
     }
 
 
+# Autopilot reads text customers wrote (task titles, notes), so it runs unattended only within these
+# grants: it reads records and adds follow-up tasks; changing contacts, closing tasks or emitting
+# events waits for the owner, and messages still follow the autonomy level.
+AUTOPILOT_GRANTS = ("contacts:read", "tasks:read", "business_context:read", "tasks.create_task", "send_message")
+
+
 class AutopilotEngine:
     """Runs proactive reviews and keeps their history."""
 
@@ -69,6 +75,7 @@ class AutopilotEngine:
                 conversation_id=f"autopilot:{day}",
                 sender_name="Autopilot",
                 source="autopilot",
+                grants=list(AUTOPILOT_GRANTS),
             )
             status = "completed" if result.get("ai_available") else "skipped"
             error = "" if result.get("ai_available") else "AI model is not connected."

@@ -111,7 +111,9 @@ class PolicyEngine:
                 if not pin or not actor_ref:
                     pending.append(step)
                     continue
-                step.params = {**(step.params or {}), pin: actor_ref}
+                fields = RuntimeCognition.self_service_fields(step.capability, step.action)
+                kept = {k: v for k, v in (step.params or {}).items() if k in fields}
+                step.params = {**kept, pin: actor_ref}
             verdict = PolicyEngineV2.evaluate(
                 action=step.action,
                 params=step.params or {},
@@ -150,7 +152,11 @@ class PolicyEngine:
     def _granted(grants: list | None, step: Any) -> bool:
         if grants is None:
             return True
-        return step.capability in grants or (step.risk == "read" and f"{step.capability}:read" in grants)
+        return (
+            step.capability in grants
+            or f"{step.capability}.{step.action}" in grants
+            or (step.risk == "read" and f"{step.capability}:read" in grants)
+        )
 
     @staticmethod
     def _role_may_read(role: str) -> bool:

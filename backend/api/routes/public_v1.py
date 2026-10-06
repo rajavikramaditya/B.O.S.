@@ -73,6 +73,7 @@ def post_message(body: MessageIn, principal: Principal = Depends(require_scope("
             name=body.contact.name,
             phone=body.contact.phone,
             email=body.contact.email,
+            namespace=f"key:{principal.id}",  # the caller asserts this identity, so it stays in the key's namespace
         )
     result = RuntimeGateway.submit(
         role="customer",
