@@ -7,6 +7,7 @@ Payload parsing here is protocol parsing, not language understanding.
 
 import hashlib
 import hmac
+import json
 import threading
 from collections import OrderedDict
 from typing import Any, Dict
@@ -39,6 +40,31 @@ class _SeenMessages:
 
 seen = _SeenMessages()
 
+# Real Telegram / WhatsApp updates are a few KB; anything far larger is refused before hashing or parsing.
+MAX_WEBHOOK_BYTES = 256 * 1024
+
+
+async def _read_body(request: Request) -> bytes:
+    """Read the request body, refusing it as soon as it exceeds MAX_WEBHOOK_BYTES."""
+    too_large = HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Payload too large.")
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > MAX_WEBHOOK_BYTES:
+        raise too_large
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_WEBHOOK_BYTES:
+            raise too_large
+    return bytes(body)
+
+
+def _parse_json(raw: bytes) -> Dict[str, Any]:
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid JSON.")
+    return data if isinstance(data, dict) else {}
+
 
 def handle_customer_message(*, channel: str, external_id: str, name: str, text: str, phone: str = "") -> None:
     contact_id = RuntimeGateway.identify_contact(channel=channel, external_id=external_id, name=name, phone=phone)
@@ -60,7 +86,7 @@ async def telegram_webhook(request: Request, background: BackgroundTasks) -> Dic
     secret = request.headers.get("x-telegram-bot-api-secret-token", "")
     if not creds.get("webhook_secret") or not hmac.compare_digest(secret, creds["webhook_secret"]):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid webhook secret.")
-    update = await request.json()
+    update = _parse_json(await _read_body(request))
     message = update.get("message") or {}
     text = message.get("text")
     chat_id = str((message.get("chat") or {}).get("id") or "")
@@ -86,14 +112,16 @@ async def whatsapp_webhook(request: Request, background: BackgroundTasks) -> Dic
     creds = ConnectionStore.credentials("whatsapp")
     if not creds:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "WhatsApp is not connected.")
-    raw = await request.body()
     if not creds.get("app_secret"):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Add the WhatsApp app secret so incoming messages can be verified.")
     signature = request.headers.get("x-hub-signature-256", "")
+    if not signature.startswith("sha256="):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid signature.")
+    raw = await _read_body(request)
     expected = "sha256=" + hmac.new(creds["app_secret"].encode(), raw, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(signature, expected):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid signature.")
-    payload = await request.json()
+    payload = _parse_json(raw)
     for entry in payload.get("entry") or []:
         for change in entry.get("changes") or []:
             value = change.get("value") or {}

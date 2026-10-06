@@ -12,7 +12,7 @@ Sprint-13 (Platform Activation & Launch Readiness)
 
 # Current Milestone
 
-Sprint-13 Completed: the Runtime runs end to end with AI understanding, per-step policy and verification. The owner dashboard, channels (Telegram, WhatsApp, Email), public API, webhooks, MCP server, Autopilot and Docker deployment are in place. 62 tests passing.
+Sprint-13 Completed: the Runtime runs end to end with AI understanding, per-step policy and verification. The owner dashboard, channels (Telegram, WhatsApp, Email), public API, webhooks, MCP server, Autopilot and Docker deployment are in place. Security review hardening (scoped API keys enforced in the Runtime, signed and size-capped channel webhooks) is done. 75 tests passing.
 
 # Current Priority
 

@@ -241,6 +241,18 @@ def test_whatsapp_webhook_requires_valid_signature(platform_app, ai):
     assert verify.text == "42"
 
 
+def test_channel_webhooks_refuse_oversized_payloads(platform_app, ai):
+    from api.routes.channels import MAX_WEBHOOK_BYTES
+
+    huge = b"x" * (MAX_WEBHOOK_BYTES + 1)
+    ConnectionStore.save("whatsapp", {"access_token": "t", "phone_number_id": "1", "verify_token": "v", "app_secret": "shh"})
+    wa = platform_app.post("/v1/channels/whatsapp/webhook", content=huge, headers={"X-Hub-Signature-256": "sha256=00"})
+    assert wa.status_code == 413
+    ConnectionStore.save("telegram", {"bot_token": "t", "webhook_secret": "s"})
+    tg = platform_app.post("/v1/channels/telegram/webhook", content=huge, headers={"X-Telegram-Bot-Api-Secret-Token": "s"})
+    assert tg.status_code == 413
+
+
 
 # --------------------------------------------------------------------------- security review fixes
 
