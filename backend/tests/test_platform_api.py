@@ -443,3 +443,15 @@ def test_new_keys_default_to_least_privilege(platform_app, owner, ai):
     assert platform_app.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, headers=headers).status_code == 403
     junk = platform_app.post("/api/developer/keys", json={"name": "X", "scopes": ["admin"]}, headers=owner).json()
     assert junk["scopes"] == ["runtime"]
+
+
+def test_customer_prompt_hides_internal_contact_fields(platform_app, owner, ai, monkeypatch):
+    monkeypatch.setattr(RuntimeGateway, "deliver_reply", classmethod(lambda cls, **_: True))
+    contact_id = RuntimeGateway.identify_contact(channel="telegram", external_id="777", name="Ravi")
+    ContactRepository.upsert({"id": contact_id, "notes": "STAFF-ONLY: haggles on price", "tags": ["vip-internal"], "attributes": {"margin": "low"}})
+    from api.routes.channels import handle_customer_message
+
+    handle_customer_message(channel="telegram", external_id="777", name="Ravi", text="what do you know about me?")
+    situation = ai.requests[-1]["messages"][-1]["content"]
+    assert "Ravi" in situation and contact_id in situation
+    assert "STAFF-ONLY" not in situation and "vip-internal" not in situation and "margin" not in situation

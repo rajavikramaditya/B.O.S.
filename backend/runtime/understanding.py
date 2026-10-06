@@ -73,6 +73,9 @@ AUDIENCE = {
 
 INTERNAL_ROLES = ("owner", "employee", "system")
 RECORD_CAPABILITIES = ("contacts", "tasks")  # what the business snapshot exposes
+# What a customer's own contact record may show in their conversation; staff notes, tags,
+# stage and attributes are internal and could otherwise be echoed back to them.
+CUSTOMER_PROFILE_FIELDS = ("id", "name", "phone", "email")
 
 OPERATING_PRINCIPLES = """\
 How you operate (B.O.S. principles):
@@ -195,6 +198,12 @@ class UnderstandingEngine:
         )
 
     @staticmethod
+    def _visible_profile(request: NormalizedRequest, profile: Dict[str, Any]) -> Dict[str, Any]:
+        if request.role in INTERNAL_ROLES:
+            return profile
+        return {k: v for k, v in (profile or {}).items() if k in CUSTOMER_PROFILE_FIELDS}
+
+    @staticmethod
     def _may_see_records(request: NormalizedRequest) -> bool:
         """Internal roles see the business snapshot, unless their grants exclude contact and task reads."""
         if request.role not in INTERNAL_ROLES:
@@ -214,7 +223,7 @@ class UnderstandingEngine:
             "you_are_talking_to": AUDIENCE.get(request.role, AUDIENCE["customer"]),
             "channel": request.channel,
             "sender_name": request.sender_name,
-            "actor_profile": context.actor_profile,
+            "actor_profile": UnderstandingEngine._visible_profile(request, context.actor_profile),
             "autopilot_mode": context.autopilot_mode,
         }
         if UnderstandingEngine._may_see_records(request):
