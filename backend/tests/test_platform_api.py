@@ -455,3 +455,24 @@ def test_customer_prompt_hides_internal_contact_fields(platform_app, owner, ai, 
     situation = ai.requests[-1]["messages"][-1]["content"]
     assert "Ravi" in situation and contact_id in situation
     assert "STAFF-ONLY" not in situation and "vip-internal" not in situation and "margin" not in situation
+
+
+def test_customer_replies_never_see_record_contents(platform_app, owner, ai, monkeypatch):
+    monkeypatch.setattr(RuntimeGateway, "deliver_reply", classmethod(lambda cls, **_: True))
+    contact_id = RuntimeGateway.identify_contact(channel="telegram", external_id="888", name="Isha")
+    ContactRepository.upsert({"id": contact_id, "notes": "STAFF-ONLY: slow payer"})
+    from api.routes.channels import handle_customer_message
+
+    ai.plan([{"capability": "contacts", "action": "upsert_contact", "params": {"name": "Isha K"}, "title": "Save name"}])
+    handle_customer_message(channel="telegram", external_id="888", name="Isha", text="my name is Isha K")
+    assert ContactRepository.get(contact_id)["name"] == "Isha K"
+    assert not any("STAFF-ONLY" in json.dumps(r, default=str) for r in ai.requests)
+
+    key = _api_key(platform_app, owner, ["runtime"])
+    ai.plan([{"capability": "contacts", "action": "upsert_contact", "params": {"name": "Web Visitor"}, "title": "Save me"}])
+    res = platform_app.post(
+        "/v1/messages",
+        json={"message": "hi", "contact": {"name": "Web Visitor", "external_id": "w1"}},
+        headers={"Authorization": f"Bearer {key['key']}"},
+    ).json()
+    assert res["executed_steps"] == [{"title": "Save me", "success": True}]

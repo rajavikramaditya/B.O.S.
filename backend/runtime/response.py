@@ -8,6 +8,7 @@ import json
 from typing import Any, Dict, List
 
 from .cognition import AI_UNAVAILABLE, RuntimeCognition
+from .understanding import INTERNAL_ROLES
 from .contracts import (
     BusinessIntent,
     ExecutionResult,
@@ -86,7 +87,7 @@ class ResponseEngine:
         denied: List[Dict[str, Any]],
         context: RuntimeContext | None,
     ) -> str:
-        facts = ResponseEngine._facts(intent, execution, pending, denied)
+        facts = ResponseEngine._facts(intent, execution, pending, denied, internal=request.role in INTERNAL_ROLES)
         audience = "the business owner" if request.role == "owner" else ("an internal log" if request.role == "system" else "the person you are talking to")
         system = (
             "You finalize replies for B.O.S. Rewrite the draft reply so it matches the verified facts exactly. "
@@ -112,11 +113,21 @@ class ResponseEngine:
 
     @staticmethod
     def _facts(
-        intent: BusinessIntent, execution: ExecutionResult, pending: List[Dict[str, Any]], denied: List[Dict[str, Any]]
+        intent: BusinessIntent,
+        execution: ExecutionResult,
+        pending: List[Dict[str, Any]],
+        denied: List[Dict[str, Any]],
+        internal: bool = True,
     ) -> Dict[str, Any]:
+        # Customer-facing replies are grounded on what happened, never on record contents
+        # (a saved contact row carries staff notes, tags and stage).
         return {
             "draft_reply": intent.reply_draft,
-            "completed": [{"title": r["title"], "result": r.get("data")} for r in execution.step_results if r["success"]],
+            "completed": [
+                {"title": r["title"], "result": r.get("data")} if internal else {"title": r["title"]}
+                for r in execution.step_results
+                if r["success"]
+            ],
             "failed": [{"title": r["title"], "error": r.get("error")} for r in execution.step_results if not r["success"]],
             "awaiting_owner_approval": [p["title"] for p in pending],
             "not_allowed": denied,

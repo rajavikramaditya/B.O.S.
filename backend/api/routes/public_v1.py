@@ -84,7 +84,11 @@ def post_message(body: MessageIn, principal: Principal = Depends(require_scope("
         actor_ref=actor_ref,
         source=f"api:{principal.name}",
     )
-    return _public(result)
+    public = _public(result)
+    # The caller speaks for a customer, so step results (which hold internal record fields) are summarized.
+    public["executed_steps"] = [{"title": s.get("title"), "success": s.get("success")} for s in result.get("executed_steps") or []]
+    public["approvals"] = [{"title": a.get("title")} for a in result.get("approvals") or []]
+    return public
 
 
 @router.post("/actions", summary="Run an explicit plan of capability actions (staff-level)")
